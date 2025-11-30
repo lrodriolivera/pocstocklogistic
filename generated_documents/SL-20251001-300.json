@@ -1,0 +1,35 @@
+{
+  "quote_id": "SL-20251001-300",
+  "origen": "Sevilla",
+  "destino": "Lyon",
+  "peso_kg": 300,
+  "tipo_carga": "carga_general",
+  "tipo_transporte": "terrestre",
+  "distancia_km": 900,
+  "paises_transito": [
+    "ES",
+    "FR"
+  ],
+  "fecha_recogida": "2025-10-01",
+  "costo_transporte_eur": 3240.0,
+  "costo_combustible_eur": 315.0,
+  "costo_peajes_eur": 85,
+  "costo_seguro_eur": 50,
+  "costo_total_eur": 3690.0,
+  "tiempo_estimado_dias": 3,
+  "horas_conduccion": 11.2,
+  "restricciones": [],
+  "alertas_criticas": 0,
+  "festivos_ruta": [],
+  "vehiculo": {
+    "type": "van",
+    "weight": 0.3,
+    "height": 2.5,
+    "width": 2.0,
+    "length": 6.0,
+    "axles": 2
+  },
+  "validez_dias": 7,
+  "fecha_generacion": "2025-09-29 21:28:06",
+  "moneda": "EUR"
+}

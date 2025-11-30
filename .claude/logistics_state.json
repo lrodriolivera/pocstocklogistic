@@ -1,0 +1,279 @@
+{
+  "current_session": "quote_1759191771",
+  "sessions": {
+    "quote_1759191244": {
+      "origin": null,
+      "destination": null,
+      "weight_kg": null,
+      "cargo_type": null,
+      "pickup_date": null,
+      "company_data": {
+        "name": null,
+        "contact_person": null,
+        "email": null,
+        "phone": null
+      },
+      "status": "collecting_data",
+      "step": 1,
+      "created_at": "2025-09-29T21:14:04.202564",
+      "updated_at": "2025-09-29T21:14:04.202574"
+    },
+    "quote_1759191345": {
+      "origin": "Madrid",
+      "destination": "Paris",
+      "weight_kg": 2500,
+      "cargo_type": "carga_general",
+      "pickup_date": "2025-10-15",
+      "company_data": {
+        "name": "Test Company S.L.",
+        "contact_person": "Juan Test",
+        "email": "test@test.com",
+        "phone": "+34 600 000 000"
+      },
+      "status": "collecting_data",
+      "step": 1,
+      "created_at": "2025-09-29T21:15:45.554863",
+      "updated_at": "2025-09-29T21:15:45.557772"
+    },
+    "quote_1759191509": {
+      "origin": "Madrid",
+      "destination": "Paris",
+      "weight_kg": 1500,
+      "cargo_type": "carga_general",
+      "pickup_date": "2025-10-15",
+      "company_data": {
+        "name": "Test Company",
+        "contact_person": "Test User",
+        "email": "test@test.com",
+        "phone": "+34 600 000 000"
+      },
+      "status": "collecting_data",
+      "step": 1,
+      "created_at": "2025-09-29T21:18:29.346692",
+      "updated_at": "2025-09-29T21:18:29.355392"
+    },
+    "quote_1759191771": {
+      "origin": "Madrid",
+      "destination": "Paris",
+      "weight_kg": 1500,
+      "cargo_type": "carga_general",
+      "pickup_date": "2025-10-15",
+      "company_data": {
+        "name": "Test Company",
+        "contact_person": "Test User",
+        "email": "test@test.com",
+        "phone": "+34 600 000 000"
+      },
+      "status": "collecting_data",
+      "step": 1,
+      "created_at": "2025-09-29T21:22:51.333521",
+      "updated_at": "2025-09-29T21:22:51.344057"
+    }
+  },
+  "quotation_templates": {
+    "default": {
+      "origin": null,
+      "destination": null,
+      "weight_kg": null,
+      "cargo_type": null,
+      "pickup_date": null,
+      "company_data": {
+        "name": null,
+        "contact_person": null,
+        "email": null,
+        "phone": null
+      },
+      "status": "pending",
+      "step": 1,
+      "created_at": null,
+      "updated_at": null
+    }
+  },
+  "validation_rules": {
+    "spanish_cities": [
+      "madrid",
+      "barcelona",
+      "valencia",
+      "sevilla",
+      "zaragoza",
+      "malaga",
+      "murcia",
+      "palma",
+      "las palmas",
+      "bilbao",
+      "alicante",
+      "cordoba",
+      "valladolid",
+      "vigo",
+      "gijon",
+      "vitoria",
+      "santander",
+      "pamplona",
+      "almeria",
+      "burgos",
+      "albacete",
+      "logrono",
+      "badajoz",
+      "salamanca"
+    ],
+    "european_countries": {
+      "francia": [
+        "paris",
+        "lyon",
+        "marsella",
+        "toulouse",
+        "niza",
+        "burdeos",
+        "estrasburgo"
+      ],
+      "alemania": [
+        "berlin",
+        "munich",
+        "hamburgo",
+        "frankfurt",
+        "colonia",
+        "stuttgart",
+        "dusseldorf"
+      ],
+      "italia": [
+        "roma",
+        "milan",
+        "napoles",
+        "turin",
+        "florencia",
+        "venecia",
+        "bologna"
+      ],
+      "paises bajos": [
+        "amsterdam",
+        "roterdam",
+        "la haya",
+        "utrecht",
+        "eindhoven"
+      ],
+      "belgica": [
+        "bruselas",
+        "amberes",
+        "gante",
+        "brujas",
+        "lieja"
+      ],
+      "suiza": [
+        "zurich",
+        "ginebra",
+        "berna",
+        "basilea",
+        "lausana"
+      ],
+      "austria": [
+        "viena",
+        "salzburgo",
+        "innsbruck",
+        "graz",
+        "linz"
+      ],
+      "portugal": [
+        "lisboa",
+        "oporto",
+        "braga",
+        "coimbra",
+        "funchal"
+      ],
+      "republica checa": [
+        "praga",
+        "brno",
+        "ostrava",
+        "plzen"
+      ],
+      "polonia": [
+        "varsovia",
+        "cracovia",
+        "gdansk",
+        "wroclaw",
+        "poznan"
+      ]
+    },
+    "cargo_types": {
+      "carga_general": {
+        "description": "Mercancía general sin requisitos especiales",
+        "rate_multiplier": 1.0,
+        "restrictions": []
+      },
+      "carga_fragil": {
+        "description": "Productos frágiles que requieren manipulación especial",
+        "rate_multiplier": 1.3,
+        "restrictions": [
+          "manipulacion_especial"
+        ]
+      },
+      "electronica": {
+        "description": "Equipos electrónicos y componentes tecnológicos",
+        "rate_multiplier": 1.4,
+        "restrictions": [
+          "antistatico",
+          "temperatura_controlada"
+        ]
+      },
+      "quimicos": {
+        "description": "Productos químicos con documentación ADR",
+        "rate_multiplier": 1.8,
+        "restrictions": [
+          "adr_documentation",
+          "rutas_especiales"
+        ]
+      },
+      "alimentarios": {
+        "description": "Productos alimentarios con certificación sanitaria",
+        "rate_multiplier": 1.2,
+        "restrictions": [
+          "certificacion_sanitaria",
+          "temperatura"
+        ]
+      },
+      "refrigerado": {
+        "description": "Productos que requieren cadena de frío",
+        "rate_multiplier": 1.6,
+        "restrictions": [
+          "cadena_frio",
+          "vehiculo_refrigerado"
+        ]
+      },
+      "peligrosa": {
+        "description": "Mercancía peligrosa ADR con documentación especial",
+        "rate_multiplier": 2.2,
+        "restrictions": [
+          "adr_certification",
+          "rutas_obligatorias",
+          "documentacion_especial"
+        ]
+      }
+    },
+    "weight_limits": {
+      "min_kg": 100,
+      "max_kg": 24000,
+      "vehicle_categories": {
+        "van": {
+          "max_kg": 3500,
+          "description": "Furgoneta"
+        },
+        "rigid_truck": {
+          "max_kg": 12000,
+          "description": "Camión rígido"
+        },
+        "truck_trailer": {
+          "max_kg": 24000,
+          "description": "Tráiler"
+        }
+      }
+    }
+  },
+  "step_descriptions": {
+    "1": "Recopilando ciudad de origen en España",
+    "2": "Recopilando ciudad de destino en Europa",
+    "3": "Recopilando peso de la mercancía",
+    "4": "Recopilando tipo de carga",
+    "5": "Recopilando fecha de recogida",
+    "6": "Recopilando datos de la empresa",
+    "7": "Generando cotización final"
+  }
+}

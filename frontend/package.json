@@ -1,0 +1,55 @@
+{
+  "name": "stock-logistic-frontend",
+  "version": "1.0.0",
+  "description": "Sistema de Cotizaciones Inteligente - Frontend",
+  "homepage": ".",
+  "proxy": "http://localhost:5000",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "test:coverage": "react-scripts test --coverage --ci",
+    "eject": "react-scripts eject",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.28.4",
+    "autoprefixer": "^10.4.14",
+    "axios": "^1.5.0",
+    "http-proxy-middleware": "^3.0.5",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.263.1",
+    "postcss": "^8.4.27",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.45.2",
+    "react-hot-toast": "^2.4.1",
+    "react-leaflet": "^4.2.1",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^7.9.3",
+    "react-scripts": "^5.0.1",
+    "react-select": "^5.7.4",
+    "recharts": "^2.15.4",
+    "tailwindcss": "^3.3.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.4",
+    "@babel/preset-react": "^7.27.1",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.4.3",
+    "eslint": "^8.46.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

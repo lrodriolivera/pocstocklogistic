@@ -1,0 +1,50 @@
+{
+  "name": "stock-logistic-backend",
+  "version": "1.0.0",
+  "description": "Sistema de Cotizaciones Inteligente - Backend",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/"
+  },
+  "keywords": [
+    "logistics",
+    "ai",
+    "quotes",
+    "transport"
+  ],
+  "author": "Stock Logistic Team",
+  "license": "ISC",
+  "dependencies": {
+    "@gradio/client": "^0.12.2",
+    "@mapbox/polyline": "^1.2.1",
+    "axios": "^1.5.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.8.1",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "joi": "^17.9.2",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.29.4",
+    "mongoose": "^7.4.3",
+    "morgan": "^1.10.0",
+    "pdf-lib": "^1.17.1",
+    "puppeteer": "^24.22.3",
+    "redis": "^4.6.7",
+    "winston": "^3.10.0",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.46.0",
+    "jest": "^29.6.2",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  }
+}

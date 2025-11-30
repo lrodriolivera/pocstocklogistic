@@ -1,0 +1,116 @@
+# Render Blueprint - Stock Logistic POC
+# Este archivo permite desplegar todos los servicios con un solo clic
+# Documentación: https://render.com/docs/blueprint-spec
+
+services:
+  # ============================================
+  # BACKEND - Node.js/Express API
+  # ============================================
+  - type: web
+    name: stock-logistic-backend
+    runtime: node
+    region: frankfurt  # Más cercano a España
+    plan: starter      # $7/mes - siempre activo
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # MongoDB Atlas - configurar manualmente
+      - key: MONGODB_URI
+        sync: false
+      # Redis - opcional, puede dejarse vacío para POC
+      - key: REDIS_URL
+        sync: false
+      # AI Service URL - se autocompleta con el servicio interno
+      - key: AI_SERVICE_URL
+        fromService:
+          name: stock-logistic-ai
+          type: web
+          property: host
+      # APIs externas
+      - key: OPENROUTE_API_KEY
+        sync: false
+      - key: TOLLGURU_API_KEY
+        sync: false
+      # Seguridad
+      - key: JWT_SECRET
+        generateValue: true
+      - key: BCRYPT_ROUNDS
+        value: 12
+      # Rate Limiting
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
+      # Frontend URL para CORS
+      - key: FRONTEND_URL
+        fromService:
+          name: stock-logistic-frontend
+          type: web
+          property: host
+
+  # ============================================
+  # AI SERVICE - Python/FastAPI (Claude)
+  # ============================================
+  - type: web
+    name: stock-logistic-ai
+    runtime: python
+    region: frankfurt
+    plan: starter      # $7/mes
+    buildCommand: cd ai-service && pip install -r requirements.txt
+    startCommand: cd ai-service && python luci_server.py
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      # Claude API Key - configurar manualmente (SECRETO)
+      - key: CLAUDE_API_KEY
+        sync: false
+      # Backend URL
+      - key: BACKEND_URL
+        fromService:
+          name: stock-logistic-backend
+          type: web
+          property: host
+      # CORS - se actualizará con URLs de producción
+      - key: CORS_ORIGINS
+        sync: false
+      # Sesiones
+      - key: SESSION_TIMEOUT_MINUTES
+        value: 30
+      - key: MAX_SESSIONS
+        value: 100
+      - key: LOG_LEVEL
+        value: INFO
+
+  # ============================================
+  # FRONTEND - React Static Site (GRATIS)
+  # ============================================
+  - type: web
+    name: stock-logistic-frontend
+    runtime: static
+    region: frankfurt
+    plan: free         # Gratis para static sites
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/build
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      # API URL del backend - para el build de React
+      - key: REACT_APP_API_URL
+        fromService:
+          name: stock-logistic-backend
+          type: web
+          property: host

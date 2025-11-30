@@ -1,0 +1,65 @@
+{
+  "quote_id": "SL-20250929-8010",
+  "created_at": "2025-09-29T21:22:51.367699",
+  "origen": "Madrid",
+  "destino": "Paris",
+  "peso_kg": 1500,
+  "tipo_carga": "carga_general",
+  "tipo_transporte": "terrestre",
+  "distancia_km": 1000,
+  "fecha_recogida": "2025-10-15",
+  "costo_transporte_eur": 18000.0,
+  "costo_combustible_eur": 350.0,
+  "costo_peajes_eur": 120.0,
+  "costo_seguro_eur": 75.0,
+  "costo_total_eur": 18545.0,
+  "tiempo_estimado_dias": 2,
+  "restricciones": [],
+  "alertas_criticas": 0,
+  "validez_dias": 7,
+  "company_data": {
+    "name": "Test Company",
+    "contact_person": "Test User",
+    "email": "test@test.com",
+    "phone": "+34 600 000 000"
+  },
+  "service_alternatives": [
+    {
+      "tipo": "económica",
+      "descripcion": "Servicio estándar con tiempo de entrega extendido",
+      "precio_eur": 15763.25,
+      "tiempo_dias": 4,
+      "caracteristicas": [
+        "Entrega en horario estándar",
+        "Seguimiento básico",
+        "Seguro incluido"
+      ]
+    },
+    {
+      "tipo": "estándar",
+      "descripcion": "Nuestro servicio más popular con excelente relación calidad-precio",
+      "precio_eur": 18545.0,
+      "tiempo_dias": 2,
+      "caracteristicas": [
+        "Seguimiento en tiempo real",
+        "Seguro completo",
+        "Soporte 24/7",
+        "Entrega en horario laboral"
+      ],
+      "recomendado": true
+    },
+    {
+      "tipo": "express",
+      "descripcion": "Servicio prioritario con entrega garantizada",
+      "precio_eur": 23181.25,
+      "tiempo_dias": 1,
+      "caracteristicas": [
+        "Entrega prioritaria",
+        "Seguimiento GPS en tiempo real",
+        "Seguro premium",
+        "Soporte dedicado",
+        "Entrega en horario extendido"
+      ]
+    }
+  ]
+}

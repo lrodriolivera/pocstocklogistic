@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+
+# Environment files (IMPORTANT: contain API keys)
+.env
+.env.local
+.env.production
+*.env
+backend/.env
+ai-service/.env
+frontend/.env
+
+# Build outputs
+frontend/build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+logs/
+luci.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cache
+.cache/
+cache/
+diskcache/
+
+# Testing
+coverage/
+.coverage
+htmlcov/
+
+# Temporary files
+*.tmp
+*.temp
+.temp/
+
+# Generated documents (optional - uncomment if you want to exclude)
+# generated_documents/
+
+# Package locks (keep package-lock.json for reproducible builds)
+# package-lock.json

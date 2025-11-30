@@ -1,0 +1,37 @@
+{
+  "name": "stock-logistic-poc",
+  "version": "1.0.0",
+  "description": "Sistema de Cotizaciones Inteligente - POC completa",
+  "scripts": {
+    "start": "./start-dev.sh",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test -- --coverage",
+    "test:e2e": "cd backend && npm run test:e2e",
+    "test:all": "npm run test && npm run test:e2e",
+    "build": "cd frontend && npm run build && cd ../backend && npm run build",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "dev": "./start-dev.sh",
+    "setup": "./verify-setup.sh",
+    "demo": "./run-luc1-demo.sh"
+  },
+  "keywords": [
+    "logistics",
+    "ai",
+    "quotes",
+    "transport",
+    "luc1-comex"
+  ],
+  "author": "Stock Logistic Team",
+  "license": "ISC",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}
