@@ -17,6 +17,7 @@ import {
   Edit,
   MessageSquare
 } from 'lucide-react';
+import { API_CONFIG } from '../../config/api';
 
 const ClientPortal = () => {
   const { token } = useParams();
@@ -39,13 +40,13 @@ const ClientPortal = () => {
 
       try {
         // Registrar la visualización
-        await fetch(`/api/quotes/portal/${token}/view`, {
+        await fetch(`${API_CONFIG.endpoints.quotes}/portal/${token}/view`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
 
         // Obtener los datos de la cotización
-        const response = await fetch(`/api/quotes/portal/${token}`);
+        const response = await fetch(`${API_CONFIG.endpoints.quotes}/portal/${token}`);
 
         if (response.ok) {
           const result = await response.json();
@@ -83,7 +84,7 @@ const ClientPortal = () => {
   const handleAcceptQuote = async () => {
     setProcessingAction(true);
     try {
-      const response = await fetch(`/api/quotes/portal/${token}/accept`, {
+      const response = await fetch(`${API_CONFIG.endpoints.quotes}/portal/${token}/accept`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -109,7 +110,7 @@ const ClientPortal = () => {
 
     setProcessingAction(true);
     try {
-      const response = await fetch(`/api/quotes/portal/${token}/reject`, {
+      const response = await fetch(`${API_CONFIG.endpoints.quotes}/portal/${token}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -137,7 +138,7 @@ const ClientPortal = () => {
 
     setProcessingAction(true);
     try {
-      const response = await fetch(`/api/quotes/portal/${token}/negotiate`, {
+      const response = await fetch(`${API_CONFIG.endpoints.quotes}/portal/${token}/negotiate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
