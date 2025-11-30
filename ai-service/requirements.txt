@@ -2,25 +2,25 @@
 # Updated for Claude Sonnet 4 API integration
 
 # Core API framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.2
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.6.0
 
 # HTTP client for API calls
-requests==2.31.0
-httpx==0.25.2
+requests>=2.31.0
+httpx>=0.26.0
 
 # Environment management
-python-dotenv==1.0.0
+python-dotenv>=1.0.0
 
 # Data handling
-python-multipart==0.0.6
+python-multipart>=0.0.6
 
 # Async support
-aiofiles==23.2.1
+aiofiles>=23.2.1
 
 # Monitoring and logging
-loguru==0.7.2
+loguru>=0.7.2
 
 # Optional: For caching responses
-diskcache==5.6.3
+diskcache>=5.6.3
