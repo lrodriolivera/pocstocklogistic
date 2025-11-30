@@ -18,10 +18,7 @@ services:
       - key: REDIS_URL
         sync: false
       - key: AI_SERVICE_URL
-        fromService:
-          name: stock-logistic-ai
-          type: web
-          property: hostport
+        value: https://stock-logistic-ai.onrender.com
       - key: OPENROUTE_API_KEY
         sync: false
       - key: TOLLGURU_API_KEY
@@ -35,10 +32,7 @@ services:
       - key: RATE_LIMIT_MAX_REQUESTS
         value: "100"
       - key: FRONTEND_URL
-        fromService:
-          name: stock-logistic-frontend
-          type: web
-          property: hostport
+        value: https://stock-logistic-frontend.onrender.com
 
   # AI Service - Python/FastAPI (Claude)
   - type: web
@@ -57,10 +51,7 @@ services:
       - key: CLAUDE_API_KEY
         sync: false
       - key: BACKEND_URL
-        fromService:
-          name: stock-logistic-backend
-          type: web
-          property: hostport
+        value: https://stock-logistic-backend.onrender.com
       - key: CORS_ORIGINS
         sync: false
       - key: SESSION_TIMEOUT_MINUTES
@@ -82,7 +73,4 @@ services:
         destination: /index.html
     envVars:
       - key: REACT_APP_API_URL
-        fromService:
-          name: stock-logistic-backend
-          type: web
-          property: hostport
+        value: https://stock-logistic-backend.onrender.com
