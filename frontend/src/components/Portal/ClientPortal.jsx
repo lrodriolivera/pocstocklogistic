@@ -25,8 +25,11 @@ const ClientPortal = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModificationModal, setShowModificationModal] = useState(false);
+  const [showCounterOfferResponse, setShowCounterOfferResponse] = useState(false);
   const [modificationRequest, setModificationRequest] = useState('');
   const [proposedPrice, setProposedPrice] = useState('');
+  const [counterProposalPrice, setCounterProposalPrice] = useState('');
+  const [counterProposalNotes, setCounterProposalNotes] = useState('');
   const [processingAction, setProcessingAction] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
 
@@ -162,6 +165,76 @@ const ClientPortal = () => {
       }
     } catch (error) {
       alert('Error de conexión');
+    }
+    setProcessingAction(false);
+  };
+
+  // Check if there's a pending counter-offer from commercial
+  const getPendingCounterOffer = () => {
+    if (!quote?.negotiations) return null;
+    const negotiations = quote.negotiations || [];
+    return negotiations.find(n => n.status === 'pending' && n.proposedBy === 'commercial');
+  };
+
+  // Handle accepting commercial's counter-offer
+  const handleAcceptCounterOffer = async () => {
+    setProcessingAction(true);
+    try {
+      const response = await fetch(`${API_CONFIG.endpoints.quotes}/portal/${token}/respond-counter-offer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          response: 'accept',
+          notes: 'Cliente acepta la contraoferta'
+        })
+      });
+
+      if (response.ok) {
+        setActionMessage({ type: 'success', text: '✅ Contraoferta aceptada exitosamente. Nos pondremos en contacto pronto.' });
+        setQuote(prev => ({
+          ...prev,
+          quote: { ...prev.quote, status: 'accepted' }
+        }));
+      } else {
+        setActionMessage({ type: 'error', text: 'Error al aceptar la contraoferta' });
+      }
+    } catch (error) {
+      setActionMessage({ type: 'error', text: 'Error de conexión' });
+    }
+    setProcessingAction(false);
+  };
+
+  // Handle rejecting commercial's counter-offer (with option to counter-propose)
+  const handleRejectCounterOffer = async () => {
+    setProcessingAction(true);
+    try {
+      const response = await fetch(`${API_CONFIG.endpoints.quotes}/portal/${token}/respond-counter-offer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          response: 'reject',
+          proposedPrice: counterProposalPrice ? parseFloat(counterProposalPrice) : null,
+          notes: counterProposalNotes || 'Cliente rechaza la contraoferta'
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (counterProposalPrice) {
+          setActionMessage({ type: 'success', text: '📨 Nueva propuesta enviada. Le responderemos pronto.' });
+        } else {
+          setActionMessage({ type: 'error', text: 'Contraoferta rechazada.' });
+        }
+        setShowCounterOfferResponse(false);
+        setCounterProposalPrice('');
+        setCounterProposalNotes('');
+        // Refresh quote data
+        window.location.reload();
+      } else {
+        setActionMessage({ type: 'error', text: 'Error al procesar la respuesta' });
+      }
+    } catch (error) {
+      setActionMessage({ type: 'error', text: 'Error de conexión' });
     }
     setProcessingAction(false);
   };
@@ -437,8 +510,71 @@ const ClientPortal = () => {
           </div>
         )}
 
-        {/* Action Buttons - Only show if quote is not already accepted/rejected */}
-        {quote.quote.status !== 'accepted' && quote.quote.status !== 'rejected' && (
+        {/* Counter-Offer from Commercial */}
+        {quote.quote.status === 'negotiating' && quote.negotiations && (() => {
+          const pendingCounterOffer = quote.negotiations.find(n => n.status === 'pending' && n.proposedBy === 'commercial');
+          if (!pendingCounterOffer) return null;
+
+          return (
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-xl shadow-lg p-6 mb-6">
+              <div className="flex items-center mb-4">
+                <MessageSquare className="w-6 h-6 text-blue-600 mr-2" />
+                <h3 className="text-lg font-semibold text-blue-900">💼 Contraoferta del Equipo Comercial</h3>
+              </div>
+
+              <div className="bg-white rounded-lg p-4 mb-4">
+                <p className="text-sm text-gray-600 mb-2">Nuevo precio propuesto:</p>
+                <p className="text-3xl font-bold text-blue-600">
+                  {formatCurrency(pendingCounterOffer.proposedPrice)}
+                </p>
+                {pendingCounterOffer.notes && (
+                  <p className="mt-3 text-gray-700 italic">"{pendingCounterOffer.notes}"</p>
+                )}
+                <p className="text-xs text-gray-500 mt-2">
+                  Enviada el {new Date(pendingCounterOffer.timestamp).toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+
+              {actionMessage && (
+                <div className={`mb-4 p-4 rounded-lg ${
+                  actionMessage.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                }`}>
+                  {actionMessage.text}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button
+                  onClick={handleAcceptCounterOffer}
+                  disabled={processingAction}
+                  className="flex items-center justify-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Check className="w-5 h-5 mr-2" />
+                  Aceptar Contraoferta
+                </button>
+
+                <button
+                  onClick={() => setShowCounterOfferResponse(true)}
+                  disabled={processingAction}
+                  className="flex items-center justify-center px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Edit className="w-5 h-5 mr-2" />
+                  Hacer Nueva Propuesta
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Action Buttons - Only show if quote is not already accepted/rejected and no pending counter-offer */}
+        {quote.quote.status !== 'accepted' && quote.quote.status !== 'rejected' &&
+         !(quote.negotiations?.find(n => n.status === 'pending' && n.proposedBy === 'commercial')) && (
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">🎯 Acciones de la Cotización</h3>
 
@@ -607,6 +743,84 @@ const ClientPortal = () => {
                   )}
                   <MessageSquare className="w-4 h-4 mr-2" />
                   Enviar Solicitud
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Counter-Offer Response Modal */}
+      {showCounterOfferResponse && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Responder a Contraoferta
+                </h3>
+                <button
+                  onClick={() => setShowCounterOfferResponse(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XIcon className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    Puede rechazar la contraoferta y proponer un nuevo precio, o simplemente rechazarla sin hacer una nueva propuesta.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Su precio propuesto (opcional)
+                  </label>
+                  <div className="relative">
+                    <Euro className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="number"
+                      value={counterProposalPrice}
+                      onChange={(e) => setCounterProposalPrice(e.target.value)}
+                      placeholder="Ingrese su nuevo precio"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Comentarios (opcional)
+                  </label>
+                  <textarea
+                    value={counterProposalNotes}
+                    onChange={(e) => setCounterProposalNotes(e.target.value)}
+                    placeholder="Explique su propuesta o motivos..."
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowCounterOfferResponse(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleRejectCounterOffer}
+                  disabled={processingAction}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                >
+                  {processingAction && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  )}
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  {counterProposalPrice ? 'Enviar Nueva Propuesta' : 'Rechazar Contraoferta'}
                 </button>
               </div>
             </div>

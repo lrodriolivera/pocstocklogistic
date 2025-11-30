@@ -18,6 +18,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import LoadingSpinner from '../UI/LoadingSpinner';
+import NegotiationPanel from '../Negotiations/NegotiationPanel';
 
 const Dashboard = () => {
   const { authFetch, user } = useAuth();
@@ -164,6 +165,11 @@ const Dashboard = () => {
             icon={Activity}
             color="orange"
           />
+        </div>
+
+        {/* Negotiation Panel */}
+        <div className="mb-8">
+          <NegotiationPanel />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

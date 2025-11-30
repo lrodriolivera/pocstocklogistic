@@ -46,6 +46,12 @@ router.get('/openroute-health',
   (req, res) => quoteController.getOpenRouteHealth(req, res)
 );
 
+// Negotiation Management Routes (Commercial) - MUST be before /:id routes
+router.get('/negotiations/pending',
+  authenticateToken,
+  (req, res) => quoteController.getPendingNegotiations(req, res)
+);
+
 router.get('/:id',
   authenticateToken,
   validateQuoteId,
@@ -101,6 +107,18 @@ router.post('/:id/negotiations',
   (req, res) => quoteController.addNegotiation(req, res)
 );
 
+router.post('/:id/counter-offer',
+  authenticateToken,
+  validateQuoteId,
+  (req, res) => quoteController.sendCounterOffer(req, res)
+);
+
+router.post('/:id/accept-proposal',
+  authenticateToken,
+  validateQuoteId,
+  (req, res) => quoteController.acceptClientProposal(req, res)
+);
+
 // Client Portal Routes
 router.get('/portal/:token',
   (req, res) => quoteController.getQuoteByToken(req, res)
@@ -121,6 +139,10 @@ router.post('/portal/:token/reject',
 
 router.post('/portal/:token/negotiate',
   (req, res) => quoteController.negotiateQuoteByToken(req, res)
+);
+
+router.post('/portal/:token/respond-counter-offer',
+  (req, res) => quoteController.respondToCounterOfferByToken(req, res)
 );
 
 module.exports = router;

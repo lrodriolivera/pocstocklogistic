@@ -545,7 +545,8 @@ Stock Logistic Solutions
             requirements: quote.requirements
           },
           viewCount: quote.tracking.clientAccess.viewCount,
-          lastViewed: quote.tracking.clientAccess.lastViewed
+          lastViewed: quote.tracking.clientAccess.lastViewed,
+          negotiations: quote.tracking.negotiations || []
         }
       });
     } catch (error) {
@@ -992,6 +993,299 @@ Equipo de Logística
       recipient: quote.client.email,
       portalUrl
     };
+  }
+
+  /**
+   * 📋 Get quotes with pending negotiations (for commercial dashboard)
+   */
+  async getPendingNegotiations(req, res) {
+    try {
+      const Quote = require('../models/Quote');
+      // For POC: show all pending negotiations to all commercial agents
+      // In production, you might filter by userId or team assignments
+      const quotes = await Quote.getQuotesWithPendingNegotiations(null);
+
+      // Format response with relevant negotiation info
+      const formattedQuotes = quotes.map(quote => {
+        const latestNegotiation = quote.getLatestNegotiation();
+        const pendingFromClient = quote.tracking.negotiations?.filter(
+          n => n.status === 'pending' && n.proposedBy === 'client'
+        ) || [];
+
+        return {
+          _id: quote._id,
+          quoteId: quote.quoteId,
+          client: quote.client,
+          route: {
+            origin: quote.route.origin,
+            destination: quote.route.destination
+          },
+          currentPrice: quote.costBreakdown.total,
+          status: quote.status,
+          latestNegotiation,
+          pendingFromClient: pendingFromClient.length,
+          negotiations: quote.tracking.negotiations,
+          updatedAt: quote.updatedAt
+        };
+      });
+
+      res.json({
+        success: true,
+        data: formattedQuotes,
+        count: formattedQuotes.length
+      });
+    } catch (error) {
+      console.error('Error obteniendo negociaciones pendientes:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Error obteniendo negociaciones pendientes',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * 💼 Commercial sends counter-offer to client
+   */
+  async sendCounterOffer(req, res) {
+    try {
+      const { id } = req.params;
+      const { proposedPrice, message, validUntil } = req.body;
+      const commercialId = req.user?.id || 'commercial';
+      const commercialName = req.user?.name || 'Equipo Comercial';
+
+      const quote = await this.masterQuoteService.getQuoteById(id);
+      if (!quote) {
+        return res.status(404).json({
+          success: false,
+          error: 'Cotización no encontrada'
+        });
+      }
+
+      if (!proposedPrice) {
+        return res.status(400).json({
+          success: false,
+          error: 'El precio propuesto es requerido'
+        });
+      }
+
+      // Add the counter-offer as a negotiation from commercial
+      const proposedChanges = {
+        description: message || 'Contraoferta del equipo comercial',
+        originalPrice: quote.costBreakdown.total,
+        proposedPrice: proposedPrice,
+        validUntil: validUntil || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Default 7 days
+      };
+
+      await quote.addNegotiation(
+        proposedPrice,
+        proposedChanges,
+        'commercial',
+        message || `Contraoferta: €${proposedPrice}`
+      );
+
+      // Add communication record
+      await quote.addCommunication(
+        'negotiation',
+        `Contraoferta enviada al cliente: €${proposedPrice}. ${message || ''}`,
+        quote.client.email,
+        commercialId
+      );
+
+      // Add timeline event
+      await quote.addTimelineEvent(
+        'negotiating',
+        `${commercialName} envió contraoferta: €${proposedPrice}`,
+        commercialId,
+        { proposedPrice, message }
+      );
+
+      console.log('Counter-offer sent:', {
+        quoteId: quote.quoteId,
+        originalPrice: quote.costBreakdown.total,
+        proposedPrice,
+        by: commercialId
+      });
+
+      res.json({
+        success: true,
+        message: 'Contraoferta enviada exitosamente',
+        data: {
+          quoteId: quote.quoteId,
+          proposedPrice,
+          status: 'negotiating',
+          timestamp: new Date()
+        }
+      });
+    } catch (error) {
+      console.error('Error enviando contraoferta:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Error enviando contraoferta',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * ✅ Commercial accepts client's negotiation proposal
+   */
+  async acceptClientProposal(req, res) {
+    try {
+      const { id } = req.params;
+      const { negotiationIndex, responseNotes } = req.body;
+      const commercialId = req.user?.id || 'commercial';
+
+      const quote = await this.masterQuoteService.getQuoteById(id);
+      if (!quote) {
+        return res.status(404).json({
+          success: false,
+          error: 'Cotización no encontrada'
+        });
+      }
+
+      // Find the index if not provided (use latest pending from client)
+      let indexToAccept = negotiationIndex;
+      if (indexToAccept === undefined) {
+        const negotiations = quote.tracking.negotiations || [];
+        indexToAccept = negotiations.findIndex(
+          n => n.status === 'pending' && n.proposedBy === 'client'
+        );
+        if (indexToAccept === -1) {
+          return res.status(400).json({
+            success: false,
+            error: 'No hay propuestas pendientes del cliente'
+          });
+        }
+      }
+
+      await quote.respondToNegotiation(indexToAccept, 'accepted', commercialId, responseNotes);
+
+      // Add communication
+      await quote.addCommunication(
+        'negotiation',
+        `Propuesta del cliente aceptada. ${responseNotes || ''}`,
+        quote.client.email,
+        commercialId
+      );
+
+      res.json({
+        success: true,
+        message: 'Propuesta del cliente aceptada',
+        data: {
+          quoteId: quote.quoteId,
+          newStatus: quote.status,
+          finalPrice: quote.costBreakdown.total
+        }
+      });
+    } catch (error) {
+      console.error('Error aceptando propuesta:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Error aceptando propuesta',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * 🔄 Client responds to commercial's counter-offer via portal
+   */
+  async respondToCounterOfferByToken(req, res) {
+    try {
+      const { token } = req.params;
+      const { response, proposedPrice, notes } = req.body;
+
+      const Quote = require('../models/Quote');
+      const quote = await Quote.findByClientToken(token);
+
+      if (!quote) {
+        return res.status(404).json({
+          success: false,
+          error: 'Cotización no encontrada'
+        });
+      }
+
+      // Find the latest pending counter-offer from commercial
+      const negotiations = quote.tracking.negotiations || [];
+      const counterOfferIndex = negotiations.findLastIndex(
+        n => n.status === 'pending' && n.proposedBy === 'commercial'
+      );
+
+      if (counterOfferIndex === -1) {
+        return res.status(400).json({
+          success: false,
+          error: 'No hay contraoferta pendiente para responder'
+        });
+      }
+
+      if (response === 'accept') {
+        // Client accepts the counter-offer
+        await quote.respondToNegotiation(counterOfferIndex, 'accepted', 'client', notes);
+
+        await quote.addCommunication(
+          'client_accepted',
+          `Cliente aceptó la contraoferta de €${negotiations[counterOfferIndex].proposedPrice}`,
+          quote.client.email,
+          'client'
+        );
+
+        res.json({
+          success: true,
+          message: 'Contraoferta aceptada exitosamente',
+          data: {
+            quoteId: quote.quoteId,
+            status: 'accepted',
+            finalPrice: quote.costBreakdown.total
+          }
+        });
+      } else if (response === 'reject') {
+        // Client rejects but can propose new price
+        await quote.respondToNegotiation(counterOfferIndex, 'rejected', 'client', notes);
+
+        if (proposedPrice) {
+          // Client makes a new proposal
+          const proposedChanges = {
+            description: notes || 'Nueva propuesta del cliente',
+            previousCounterOffer: negotiations[counterOfferIndex].proposedPrice,
+            proposedPrice
+          };
+
+          await quote.addNegotiation(proposedPrice, proposedChanges, 'client', notes);
+        }
+
+        await quote.addCommunication(
+          'client_negotiation',
+          `Cliente rechazó contraoferta${proposedPrice ? ` y propone €${proposedPrice}` : ''}. ${notes || ''}`,
+          quote.client.email,
+          'client'
+        );
+
+        res.json({
+          success: true,
+          message: proposedPrice
+            ? 'Contraoferta rechazada. Nueva propuesta enviada.'
+            : 'Contraoferta rechazada.',
+          data: {
+            quoteId: quote.quoteId,
+            status: quote.status,
+            newProposal: proposedPrice || null
+          }
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: 'Respuesta inválida. Use "accept" o "reject".'
+        });
+      }
+    } catch (error) {
+      console.error('Error respondiendo a contraoferta:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Error procesando respuesta',
+        message: error.message
+      });
+    }
   }
 }
 

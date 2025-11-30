@@ -447,6 +447,71 @@ QuoteSchema.methods.addNegotiation = async function(proposedPrice, proposedChang
   }
 };
 
+// Respond to the last pending negotiation (accept/reject)
+QuoteSchema.methods.respondToNegotiation = async function(negotiationIndex, response, respondedBy, responseNotes) {
+  try {
+    if (!this.tracking?.negotiations || this.tracking.negotiations.length === 0) {
+      throw new Error('No hay negociaciones pendientes');
+    }
+
+    const negotiation = this.tracking.negotiations[negotiationIndex];
+    if (!negotiation) {
+      throw new Error('Negociación no encontrada');
+    }
+
+    if (negotiation.status !== 'pending') {
+      throw new Error('Esta negociación ya fue respondida');
+    }
+
+    // Update the negotiation status
+    this.tracking.negotiations[negotiationIndex].status = response; // 'accepted' or 'rejected'
+    this.tracking.negotiations[negotiationIndex].respondedAt = new Date();
+    this.tracking.negotiations[negotiationIndex].respondedBy = respondedBy;
+    this.tracking.negotiations[negotiationIndex].responseNotes = responseNotes;
+
+    // If accepted, update quote status
+    if (response === 'accepted') {
+      this.status = 'accepted';
+      // Update price if there was a proposed price
+      if (negotiation.proposedPrice) {
+        this.costBreakdown.total = negotiation.proposedPrice;
+        this.costBreakdown.totalWithoutVAT = Math.round(negotiation.proposedPrice / 1.21);
+        this.costBreakdown.vat = negotiation.proposedPrice - this.costBreakdown.totalWithoutVAT;
+      }
+    }
+
+    // Add timeline event
+    this.tracking.timeline.push({
+      status: response === 'accepted' ? 'accepted' : 'negotiating',
+      timestamp: new Date(),
+      description: response === 'accepted'
+        ? `Negociación aceptada por ${respondedBy}`
+        : `Negociación rechazada por ${respondedBy}`,
+      performedBy: respondedBy,
+      metadata: { negotiationIndex, response, responseNotes }
+    });
+
+    return await this.save();
+  } catch (error) {
+    console.error('Error en respondToNegotiation:', error);
+    throw error;
+  }
+};
+
+// Get the latest negotiation status for display
+QuoteSchema.methods.getLatestNegotiation = function() {
+  if (!this.tracking?.negotiations || this.tracking.negotiations.length === 0) {
+    return null;
+  }
+  return this.tracking.negotiations[this.tracking.negotiations.length - 1];
+};
+
+// Get pending negotiations count
+QuoteSchema.methods.getPendingNegotiationsCount = function() {
+  if (!this.tracking?.negotiations) return 0;
+  return this.tracking.negotiations.filter(n => n.status === 'pending').length;
+};
+
 // Static methods
 QuoteSchema.statics.findByQuoteId = function(quoteId) {
   return this.findOne({ quoteId });
@@ -513,6 +578,41 @@ QuoteSchema.statics.getActivePortalQuotes = function() {
     'tracking.clientAccess.isActive': true,
     validUntil: { $gt: new Date() }
   }).sort({ createdAt: -1 });
+};
+
+// Get quotes with pending negotiations (for commercial dashboard)
+QuoteSchema.statics.getQuotesWithPendingNegotiations = function(userId = null) {
+  const query = {
+    status: 'negotiating',
+    'tracking.negotiations': {
+      $elemMatch: { status: 'pending' }
+    }
+  };
+
+  if (userId) {
+    query['tracking.assignedTo'] = userId;
+  }
+
+  return this.find(query).sort({ 'tracking.negotiations.timestamp': -1 });
+};
+
+// Get quotes awaiting client response (commercial sent counter-offer)
+QuoteSchema.statics.getQuotesAwaitingClientResponse = function(userId = null) {
+  const query = {
+    status: 'negotiating',
+    'tracking.negotiations': {
+      $elemMatch: {
+        status: 'pending',
+        proposedBy: 'commercial'
+      }
+    }
+  };
+
+  if (userId) {
+    query['tracking.assignedTo'] = userId;
+  }
+
+  return this.find(query).sort({ updatedAt: -1 });
 };
 
 const Quote = mongoose.model('Quote', QuoteSchema);
