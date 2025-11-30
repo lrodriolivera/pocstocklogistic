@@ -5,6 +5,7 @@ import { Truck, MapPin, Calendar, AlertCircle, Calculator } from 'lucide-react';
 import LoadingSpinner from '../UI/LoadingSpinner';
 import CargoInputSelector from './CargoInputSelector';
 import { useAuth } from '../../context/AuthContext';
+import { API_CONFIG } from '../../config/api';
 
 const QuoteForm = ({ onQuoteGenerated }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -78,7 +79,7 @@ const QuoteForm = ({ onQuoteGenerated }) => {
       };
 
 
-      const response = await authFetch('/api/quotes/generate', {
+      const response = await authFetch(`${API_CONFIG.endpoints.quotes}/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -187,6 +187,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const authFetch = async (url, options = {}) => {
+    // Handle URL construction:
+    // - If URL starts with /api/, prepend BASE_URL (since url already has /api)
+    // - If URL starts with http, use as-is (absolute URL)
+    // - Otherwise, prepend API_BASE_URL
+    let fullUrl = url;
+    if (url.startsWith('/api/')) {
+      fullUrl = `${BASE_URL}${url}`;
+    } else if (!url.startsWith('http')) {
+      fullUrl = `${API_BASE_URL}${url}`;
+    }
+
     const authOptions = {
       ...options,
       headers: {
@@ -196,12 +207,12 @@ export const AuthProvider = ({ children }) => {
     };
 
     try {
-      let response = await fetch(url, authOptions);
+      let response = await fetch(fullUrl, authOptions);
 
       if (response.status === 401) {
         await refreshToken();
         authOptions.headers['Authorization'] = `Bearer ${token}`;
-        response = await fetch(url, authOptions);
+        response = await fetch(fullUrl, authOptions);
       }
 
       return response;
