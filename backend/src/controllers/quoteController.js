@@ -8,6 +8,15 @@ class QuoteController {
     this.openRouteService = new OpenRouteService();
   }
 
+  /**
+   * 🔗 Generate portal URL for client access
+   * Uses FRONTEND_URL env variable in production, falls back to localhost in development
+   */
+  _getPortalUrl(token) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    return `${frontendUrl}/portal/${token}`;
+  }
+
   async generateQuote(req, res) {
     try {
       const startTime = Date.now();
@@ -354,9 +363,8 @@ class QuoteController {
       // Add timeline event
       await quote.addTimelineEvent('sent', 'Acceso al portal del cliente generado', 'commercial');
 
-      // Generate frontend portal URL instead of API URL
-      const host = req.get('host').replace(':5000', ':3000'); // Replace backend port with frontend port
-      const portalUrl = `${req.protocol}://${host}/portal/${quote.tracking.clientAccess.token}`;
+      // Generate frontend portal URL using FRONTEND_URL env variable
+      const portalUrl = this._getPortalUrl(quote.tracking.clientAccess.token);
 
       res.json({
         success: true,
@@ -398,9 +406,8 @@ class QuoteController {
         await quote.generateClientAccessToken();
       }
 
-      // Generate frontend portal URL instead of API URL
-      const host = req.get('host').replace(':5000', ':3000'); // Replace backend port with frontend port
-      const portalUrl = `${req.protocol}://${host}/portal/${quote.tracking.clientAccess.token}`;
+      // Generate frontend portal URL using FRONTEND_URL env variable
+      const portalUrl = this._getPortalUrl(quote.tracking.clientAccess.token);
 
       const emailTemplate = `
 Estimados ${quote.client.company || 'cliente'},
@@ -854,8 +861,8 @@ Stock Logistic Solutions
       await quote.generateClientAccessToken();
       await quote.addTimelineEvent('generated', 'Cotización generada por agente AI', 'claude-ai-agent');
 
-      // Build portal URL
-      const portalUrl = `http://localhost:3000/portal/${quote.tracking.clientAccess.token}`;
+      // Build portal URL using FRONTEND_URL env variable
+      const portalUrl = this._getPortalUrl(quote.tracking.clientAccess.token);
 
       // Generate email template
       console.log('📧 Generating email template...');
