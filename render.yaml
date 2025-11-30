@@ -95,8 +95,6 @@ services:
   - type: web
     name: stock-logistic-frontend
     runtime: static
-    region: frankfurt
-    plan: free         # Gratis para static sites
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/build
     headers:
