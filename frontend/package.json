@@ -2,7 +2,7 @@
   "name": "stock-logistic-frontend",
   "version": "1.0.0",
   "description": "Sistema de Cotizaciones Inteligente - Frontend",
-  "homepage": ".",
+  "homepage": "/",
   "proxy": "http://localhost:5000",
   "scripts": {
     "start": "react-scripts start",
