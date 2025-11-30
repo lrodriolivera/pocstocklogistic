@@ -510,6 +510,63 @@ const ClientPortal = () => {
           </div>
         )}
 
+        {/* Negotiation History */}
+        {quote.negotiations && quote.negotiations.length > 0 && (
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">📜 Historial de Negociación</h3>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {quote.negotiations.slice().reverse().map((negotiation, index) => (
+                <div
+                  key={index}
+                  className={`p-4 rounded-lg border-l-4 ${
+                    negotiation.proposedBy === 'client'
+                      ? 'bg-orange-50 border-orange-400'
+                      : 'bg-blue-50 border-blue-400'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <span className={`text-sm font-semibold ${
+                        negotiation.proposedBy === 'client' ? 'text-orange-700' : 'text-blue-700'
+                      }`}>
+                        {negotiation.proposedBy === 'client' ? '👤 Su propuesta' : '💼 Stock Logistic'}
+                      </span>
+                      <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                        negotiation.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : negotiation.status === 'accepted'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {negotiation.status === 'pending' ? 'Pendiente' :
+                         negotiation.status === 'accepted' ? 'Aceptado' : 'Rechazado'}
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {new Date(negotiation.timestamp).toLocaleDateString('es-ES', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                  {negotiation.proposedPrice && (
+                    <p className={`text-xl font-bold ${
+                      negotiation.proposedBy === 'client' ? 'text-orange-600' : 'text-blue-600'
+                    }`}>
+                      {formatCurrency(negotiation.proposedPrice)}
+                    </p>
+                  )}
+                  {negotiation.notes && (
+                    <p className="text-sm text-gray-700 mt-1 italic">"{negotiation.notes}"</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Counter-Offer from Commercial */}
         {quote.quote.status === 'negotiating' && quote.negotiations && (() => {
           const pendingCounterOffer = quote.negotiations.find(n => n.status === 'pending' && n.proposedBy === 'commercial');
