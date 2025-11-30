@@ -184,5 +184,7 @@ async def root():
     }
 
 if __name__ == "__main__":
-    print("🤖 Starting LUC1 Server with Claude Sonnet 4 on port 8002...")
-    uvicorn.run(app, host="0.0.0.0", port=8002)
+    port = int(os.getenv("PORT", 8002))
+    host = os.getenv("HOST", "0.0.0.0")
+    print(f"🤖 Starting LUC1 Server with Claude Sonnet 4 on port {port}...")
+    uvicorn.run(app, host=host, port=port)
