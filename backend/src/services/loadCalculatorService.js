@@ -261,19 +261,44 @@ class LoadCalculatorService {
 
   /**
    * Calcula metros lineales para equipamiento estándar
+   * @param {Object} equipment - Tipo de equipamiento
+   * @param {Object} item - Item con cantidad y opciones de apilado
+   * @returns {number} - Metros lineales calculados
    */
   calculateStandardLinearMeters(equipment, item) {
     const quantity = item.quantity || 1;
+    const truckWidth = 2.45; // metros
 
-    // Si no son apilables o no permite apilado, cada uno cuenta completo
-    if (!equipment.stackable || item.stackingOptions?.allowStackingOn === false) {
-      return equipment.linearMeter * quantity;
+    // Cuántos pallets caben a lo ancho del camión (sin apilar)
+    const itemsPerRow = Math.floor(truckWidth / equipment.width);
+
+    // Verificar si el item es apilable/remontable
+    // Por defecto, si no se especifica stackable en el item, usar el valor del equipment
+    // Pero permitir que el usuario lo sobrescriba con item.stackable = false
+    const isStackable = item.stackable !== undefined
+      ? item.stackable
+      : (equipment.stackable && item.stackingOptions?.allowStackingOn !== false);
+
+    if (!isStackable) {
+      // NO REMONTABLE: cada pallet ocupa su propio espacio en el suelo
+      // Calculamos cuántas filas necesitamos a lo largo del camión
+      const rows = Math.ceil(quantity / itemsPerRow);
+      return equipment.length * rows; // Usamos la longitud del pallet × filas
     }
 
-    // Optimización para items apilables
-    const itemsPerRow = Math.floor(2.45 / equipment.width); // Ancho del camión
-    const rows = Math.ceil(quantity / itemsPerRow);
-    return equipment.linearMeter * rows;
+    // REMONTABLE: podemos apilar verticalmente, optimizando el espacio en el suelo
+    // Calculamos cuántos pallets caben apilados verticalmente
+    const truckHeight = 2.7; // metros (altura útil del camión)
+    const itemHeight = item.height || equipment.maxHeight || 1.8; // altura del pallet con carga
+    const stacksVertically = Math.floor(truckHeight / itemHeight);
+
+    // Pallets que caben en cada posición (a lo ancho × apilado vertical)
+    const palletsPerPosition = itemsPerRow * stacksVertically;
+
+    // Filas necesarias a lo largo del camión
+    const rowsNeeded = Math.ceil(quantity / palletsPerPosition);
+
+    return equipment.length * rowsNeeded;
   }
 
   /**

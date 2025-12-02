@@ -8,6 +8,7 @@ const loadCalculatorController = require('../controllers/loadCalculatorControlle
 
 // Rutas principales
 router.post('/calculate', loadCalculatorController.calculateLoad);
+router.post('/calculate-manual', loadCalculatorController.calculateManualLoad);
 router.post('/calculate-advanced', loadCalculatorController.calculateAdvanced);
 router.get('/equipment-types', loadCalculatorController.getEquipmentTypes);
 router.post('/calculate-price', loadCalculatorController.calculateDetailedPrice);

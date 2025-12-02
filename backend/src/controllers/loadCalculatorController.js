@@ -68,6 +68,99 @@ class LoadCalculatorController {
   }
 
   /**
+   * Calcula usando entrada manual de metros lineales
+   */
+  async calculateManualLoad(req, res) {
+    try {
+      const { linearMeters, weight, distance, urgency, additionalServices } = req.body;
+
+      // Validar entrada
+      if (!linearMeters || linearMeters <= 0) {
+        return res.status(400).json({
+          error: 'Se requiere un valor válido de metros lineales'
+        });
+      }
+
+      if (linearMeters > 13.6) {
+        return res.status(400).json({
+          error: 'Los metros lineales no pueden exceder 13.6m (un trailer estándar)'
+        });
+      }
+
+      // Crear métricas de carga manual
+      const loadMetrics = {
+        totalLinearMeters: parseFloat(linearMeters),
+        totalWeight: parseFloat(weight) || 0,
+        totalVolume: 0, // No se puede calcular sin dimensiones
+        loadDetails: [{
+          type: 'manual',
+          name: 'Entrada Manual',
+          description: 'Metros lineales introducidos manualmente',
+          quantity: 1,
+          dimensions: {
+            length: parseFloat(linearMeters),
+            width: 2.45, // Ancho del camión
+            height: 2.7, // Altura del camión
+            volume: parseFloat(linearMeters) * 2.45 * 2.7
+          },
+          linearMeters: parseFloat(linearMeters),
+          weight: parseFloat(weight) || 0,
+          weightPerPiece: parseFloat(weight) || 0,
+          volume: parseFloat(linearMeters) * 2.45 * 2.7,
+          color: '#FFA500',
+          allowRotation: false,
+          stackingOptions: {
+            allowStackingOn: false,
+            allowStackingUnder: false
+          },
+          includeInLoad: true
+        }],
+        totalItems: 1
+      };
+
+      // Determinar tipo de transporte
+      const transportRecommendation = loadCalculatorService.determineTransportType(loadMetrics);
+
+      // Calcular precio si se proporciona distancia
+      let pricing = null;
+      if (distance) {
+        pricing = loadCalculatorService.calculatePrice(
+          loadMetrics,
+          transportRecommendation.type,
+          distance,
+          { urgency, additionalServices }
+        );
+      }
+
+      // Validar si cabe en camión estándar
+      const validation = loadCalculatorService.validateLoad(loadMetrics);
+
+      res.json({
+        success: true,
+        loadMetrics,
+        transportRecommendation,
+        pricing,
+        optimization: null, // No hay optimización para entrada manual
+        validation,
+        summary: {
+          totalLinearMeters: loadMetrics.totalLinearMeters,
+          totalWeight: `${loadMetrics.totalWeight} kg`,
+          totalVolume: `${loadMetrics.loadDetails[0].volume.toFixed(2)} m³`,
+          recommendedTransport: transportRecommendation.type,
+          utilization: `${transportRecommendation.utilization.linear}%`,
+          estimatedPrice: pricing ? `€${pricing.totalPrice}` : null
+        }
+      });
+    } catch (error) {
+      console.error('Error en cálculo manual de carga:', error);
+      res.status(500).json({
+        error: 'Error al calcular la carga manual',
+        message: error.message
+      });
+    }
+  }
+
+  /**
    * Obtiene tipos de equipamiento disponibles
    */
   async getEquipmentTypes(req, res) {
