@@ -61,6 +61,10 @@ app.get('/health', (req, res) => {
       openroute: process.env.OPENROUTE_API_KEY ? 'Configured' : 'Missing',
       google: process.env.GOOGLE_MAPS_API_KEY ? 'Configured' : 'Missing',
       tollguru: process.env.TOLLGURU_API_KEY ? 'Configured' : 'Missing'
+    },
+    freightExchanges: {
+      timocom: process.env.TIMOCOM_USER ? 'Configured' : 'Demo Mode',
+      wtransnet: process.env.WTRANSNET_USER ? 'Configured' : 'Demo Mode'
     }
   });
 });
@@ -74,6 +78,7 @@ const loadCalculatorRoutes = require('./routes/loadCalculator');
 const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users');
 const chatRoutes = require('./routes/chat');
+const freightExchangeRoutes = require('./routes/freightExchange');
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -84,6 +89,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api', mapsRoutes);
 app.use('/api/pdf', pdfRoutes);
 app.use('/api/load-calculator', loadCalculatorRoutes);
+app.use('/api/freight-exchange', freightExchangeRoutes);
 
 // API status endpoint
 app.get('/api/status', (req, res) => {

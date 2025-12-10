@@ -16,6 +16,16 @@ module.exports = {
     tollGuru: process.env.TOLLGURU_API_KEY,
     fuelPrices: process.env.GLOBALPETROLPRICES_API_KEY
   },
+  freightExchanges: {
+    timocom: {
+      user: process.env.TIMOCOM_USER,
+      password: process.env.TIMOCOM_PASSWORD
+    },
+    wtransnet: {
+      user: process.env.WTRANSNET_USER,
+      password: process.env.WTRANSNET_PASSWORD
+    }
+  },
   security: {
     jwtSecret: process.env.JWT_SECRET,
     bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS) || 12

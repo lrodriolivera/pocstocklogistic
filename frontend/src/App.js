@@ -19,6 +19,7 @@ import Reports from './components/Reports/Reports';
 import ClientPortal from './components/Portal/ClientPortal';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import ChatInterface from './components/Chat/ChatInterface';
+import FreightExchange from './components/FreightExchange/FreightExchange';
 
 // Component for the main app with navigation
 function MainApp() {
@@ -50,6 +51,7 @@ function MainApp() {
     else if (path === '/history') setCurrentView('history');
     else if (path === '/clients') setCurrentView('clients');
     else if (path === '/reports') setCurrentView('reports');
+    else if (path === '/freight-exchange') setCurrentView('freight-exchange');
   }, [location.pathname]);
 
   const renderContent = () => {
@@ -69,6 +71,8 @@ function MainApp() {
         return <ClientManagement />;
       case 'reports':
         return <Reports />;
+      case 'freight-exchange':
+        return <FreightExchange />;
       default:
         return user?.role === 'alta_gerencia' ?
           <ManagementDashboard /> :
@@ -141,6 +145,18 @@ function MainApp() {
               }`}
             >
               Reportes
+            </button>
+
+            {/* Bolsas de Carga - freight exchanges */}
+            <button
+              onClick={() => { setCurrentView('freight-exchange'); navigate('/freight-exchange'); }}
+              className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                currentView === 'freight-exchange'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Bolsas de Carga
             </button>
             {quoteResults && (
               <button
