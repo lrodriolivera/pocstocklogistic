@@ -94,6 +94,7 @@ const clientsRoutes = require('./routes/clients');
 const emailRoutes = require('./routes/email');
 const tenantsRoutes = require('./routes/tenants');
 const billingRoutes = require('./routes/billing');
+const trackingRoutes = require('./routes/tracking');
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -109,6 +110,7 @@ app.use('/api/clients', clientsRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/tenants', tenantsRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/tracking', trackingRoutes);
 
 // API status endpoint
 app.get('/api/status', (req, res) => {
