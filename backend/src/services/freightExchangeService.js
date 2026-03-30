@@ -404,6 +404,58 @@ class FreightExchangeService {
   }
 
   /**
+   * 🔌 Get connection status of each platform (live vs mock)
+   * Returns which platforms have real API credentials configured
+   * and which are running in demo/mock mode.
+   */
+  getConnectionStatus() {
+    const platforms = {
+      timocom: {
+        live: !!(process.env.TIMOCOM_USER && process.env.TIMOCOM_PASSWORD),
+        envVars: ['TIMOCOM_USER', 'TIMOCOM_PASSWORD'],
+        apiType: 'SOAP v2',
+        docs: 'https://developer.timocom.com/'
+      },
+      wtransnet: {
+        live: !!(process.env.WTRANSNET_USER && process.env.WTRANSNET_PASSWORD),
+        envVars: ['WTRANSNET_USER', 'WTRANSNET_PASSWORD'],
+        apiType: 'No public API (web scraping)',
+        docs: 'https://www.wtransnet.com'
+      },
+      teleroute: {
+        live: !!(process.env.TELEROUTE_CLIENT_ID && process.env.TELEROUTE_CLIENT_SECRET),
+        envVars: ['TELEROUTE_CLIENT_ID', 'TELEROUTE_CLIENT_SECRET'],
+        apiType: 'REST JWT',
+        docs: 'https://www.teleroute.com/en/digital-freight-exchange/api'
+      },
+      transeu: {
+        live: !!(process.env.TRANSEU_CLIENT_ID && process.env.TRANSEU_CLIENT_SECRET && process.env.TRANSEU_API_KEY),
+        envVars: ['TRANSEU_CLIENT_ID', 'TRANSEU_CLIENT_SECRET', 'TRANSEU_API_KEY'],
+        apiType: 'REST Bearer + APIKey',
+        docs: 'https://developers.trans.eu/'
+      },
+      cargopedia: {
+        live: !!(process.env.CARGOPEDIA_API_KEY && process.env.CARGOPEDIA_USER_ID),
+        envVars: ['CARGOPEDIA_API_KEY', 'CARGOPEDIA_USER_ID'],
+        apiType: 'REST APIKey',
+        docs: 'https://www.cargopedia.net'
+      }
+    };
+
+    const liveCount = Object.values(platforms).filter(p => p.live).length;
+
+    return {
+      summary: {
+        total: 5,
+        live: liveCount,
+        mock: 5 - liveCount,
+        status: liveCount === 5 ? 'all_live' : liveCount > 0 ? 'partial' : 'all_mock'
+      },
+      platforms
+    };
+  }
+
+  /**
    * 📋 Obtener informacion de plataformas disponibles
    */
   getPlatformsInfo() {

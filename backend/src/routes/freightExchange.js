@@ -217,6 +217,21 @@ router.get('/platforms', (req, res) => {
 });
 
 /**
+ * GET /api/freight-exchange/connection-status
+ *
+ * Check which platforms are live (real API) vs mock (demo data).
+ * Shows required env vars for each platform.
+ */
+router.get('/connection-status', (req, res) => {
+  try {
+    const status = freightExchange.getConnectionStatus();
+    res.json({ success: true, data: status });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Error checking connection status' });
+  }
+});
+
+/**
  * GET /api/freight-exchange/health
  *
  * Health check de los servicios de bolsas de carga
