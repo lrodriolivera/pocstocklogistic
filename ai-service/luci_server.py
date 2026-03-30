@@ -5,10 +5,13 @@ Puerto: 8002 (reemplaza el servicio anterior)
 """
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import uvicorn
 import sys
 import os
+import time
+from collections import defaultdict
+from loguru import logger
 
 # Agregar el directorio actual al path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -20,8 +23,27 @@ app = FastAPI(title="LUC1 AI Service - Claude Sonnet 4")
 # Instancia global de LUC1
 luc1 = None
 
+
+class SimpleRateLimiter:
+    def __init__(self, max_requests=10, window_seconds=60):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self.requests = defaultdict(list)
+
+    def is_allowed(self, key: str) -> bool:
+        now = time.time()
+        self.requests[key] = [t for t in self.requests[key] if now - t < self.window_seconds]
+        if len(self.requests[key]) >= self.max_requests:
+            return False
+        self.requests[key].append(now)
+        return True
+
+
+rate_limiter = SimpleRateLimiter(max_requests=10, window_seconds=60)
+
+
 class ChatRequest(BaseModel):
-    message: str
+    message: str = Field(..., max_length=2000)
     sessionId: str
 
 class ChatResponse(BaseModel):
@@ -39,16 +61,16 @@ class TransportistAnalysisRequest(BaseModel):
 async def startup_event():
     """Initialize LUC1 with Claude Sonnet 4 on server startup"""
     global luc1
-    print("🚀 Starting LUC1 AI Service with Claude Sonnet 4...")
+    logger.info("Starting LUC1 AI Service with Claude Sonnet 4...")
     try:
         luc1 = LUC1ClaudeHandler()
         luc1.load_model()
         if luc1.is_loaded:
-            print("✅ LUC1 AI Service with Claude Sonnet 4 started successfully")
+            logger.info("LUC1 AI Service with Claude Sonnet 4 started successfully")
         else:
-            print("❌ Failed to initialize LUC1")
+            logger.error("Failed to initialize LUC1")
     except Exception as e:
-        print(f"❌ Failed to start LUC1: {e}")
+        logger.error(f"Failed to start LUC1: {e}")
 
 @app.get("/health")
 async def health_check():
@@ -64,6 +86,9 @@ async def health_check():
 async def chat_message(request: ChatRequest):
     """Chat endpoint for LUC1"""
     try:
+        if not rate_limiter.is_allowed(request.sessionId):
+            raise HTTPException(status_code=429, detail="Too many requests. Please wait before sending another message.")
+
         if not luc1 or not luc1.is_loaded:
             return ChatResponse(
                 success=False,
@@ -88,7 +113,7 @@ async def chat_message(request: ChatRequest):
         )
 
     except Exception as e:
-        print(f"Error in chat endpoint: {e}")
+        logger.error(f"Error in chat endpoint: {e}")
         return ChatResponse(
             success=False,
             error="Error interno del servidor."
@@ -135,7 +160,7 @@ async def get_greeting(user_name: str = "Usuario", user_role: str = "agente_come
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
-        print(f"Error in greeting: {e}")
+        logger.error(f"Error in greeting: {e}")
         return {
             "greeting": f"Hola {user_name}! Soy LUC1. ¿En qué puedo ayudarte?",
             "ai_greeting": None,
@@ -149,14 +174,14 @@ async def analyze_transportist_prices(request: TransportistAnalysisRequest):
         if not luc1 or not luc1.is_loaded:
             raise HTTPException(status_code=503, detail="LUC1 no disponible")
 
-        print(f"🤖 MODO AGENTE: Analizando precios de transportistas")
-        print(f"   Session ID: {request.sessionId}")
-        print(f"   Context keys: {list(request.context.keys()) if request.context else 'None'}")
+        logger.info("MODO AGENTE: Analizando precios de transportistas")
+        logger.debug(f"Session ID: {request.sessionId}")
+        logger.debug(f"Context keys: {list(request.context.keys()) if request.context else 'None'}")
 
         # Usar análisis directo (modo agente) - SIN conversación
         analysis_response = luc1.analyze_direct(request.prompt, request.context)
 
-        print(f"✅ Análisis completado en modo agente")
+        logger.info("Analisis completado en modo agente")
 
         return {
             "success": True,
@@ -167,9 +192,8 @@ async def analyze_transportist_prices(request: TransportistAnalysisRequest):
         }
 
     except Exception as e:
-        print(f"❌ Error en análisis de transportistas: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Error en analisis de transportistas: {e}")
+        logger.error(f"Traceback: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error analizando precios: {str(e)}")
 
 @app.get("/")
@@ -186,5 +210,5 @@ async def root():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8002))
     host = os.getenv("HOST", "0.0.0.0")
-    print(f"🤖 Starting LUC1 Server with Claude Sonnet 4 on port {port}...")
+    logger.info(f"Starting LUC1 Server with Claude Sonnet 4 on port {port}...")
     uvicorn.run(app, host=host, port=port)

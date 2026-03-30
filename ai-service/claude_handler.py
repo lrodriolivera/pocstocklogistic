@@ -8,9 +8,11 @@ import requests
 import json
 import os
 import sys
+import time
 from datetime import datetime, timedelta
 import re
 from typing import Dict, List, Optional, Tuple
+from loguru import logger
 
 # Agregar el directorio actual al path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -20,14 +22,27 @@ try:
     LOGISTICS_SERVICE_AVAILABLE = True
 except ImportError:
     LOGISTICS_SERVICE_AVAILABLE = False
-    print("⚠️ European Logistics Service no disponible, usando simulación")
+    logger.warning("European Logistics Service no disponible, usando simulacion")
+
+MAX_SESSIONS = 100
+SESSION_TTL_SECONDS = 30 * 60  # 30 minutes
 
 class LUC1ClaudeHandler:
+    SONNET_MODEL = "claude-sonnet-4-20250514"
+    HAIKU_MODEL = "claude-haiku-4-5-20251001"
+
+    # Keywords that signal complex logistics reasoning (require Sonnet)
+    COMPLEX_KEYWORDS = [
+        'cotiza', 'ruta', 'precio', 'transporte', 'analiza', 'envío', 'envio',
+        'logística', 'logistica', 'tarifa', 'presupuesto', 'flete', 'aduana',
+        'importa', 'exporta', 'almacén', 'almacen', 'palé', 'palet',
+    ]
+
     def __init__(self):
         """Inicializar LUC1 con Claude Sonnet 4 API"""
         self.api_key = os.getenv('CLAUDE_API_KEY', '')
         self.api_url = "https://api.anthropic.com/v1/messages"
-        self.model = "claude-sonnet-4-20250514"  # Sonnet 4.5
+        self.model = self.SONNET_MODEL  # Default model (used by analyze_direct)
 
         # Backend integration
         self.backend_url = os.getenv('BACKEND_URL', 'http://localhost:5000')
@@ -65,11 +80,52 @@ class LUC1ClaudeHandler:
             'descripcion_carga'  # Descripción detallada
         ]
 
-        print("✅ LUC1 con Claude Sonnet 4 API inicializado correctamente")
-        print(f"🔗 Backend URL: {self.backend_url}")
+        logger.info("LUC1 con Claude Sonnet 4 API inicializado correctamente")
+        logger.info(f"Backend URL: {self.backend_url}")
+
+    def _select_model(self, message: str, session: dict) -> str:
+        """Select Haiku for simple queries, Sonnet for complex logistics analysis."""
+        quotation_data = session.get('quotation_data', {})
+        filled_count = sum(1 for f in self.required_fields if quotation_data.get(f))
+        total_required = len(self.required_fields)
+        msg_lower = message.lower().strip()
+
+        # Simple greetings / small talk: short message with no logistics keywords
+        has_complex_keyword = any(kw in msg_lower for kw in self.COMPLEX_KEYWORDS)
+
+        if len(msg_lower) < 50 and not has_complex_keyword:
+            return self.HAIKU_MODEL
+
+        # Simple yes/no confirmations
+        if msg_lower in ('sí', 'si', 'no', 'ok', 'vale', 'claro', 'correcto', 'exacto', 'perfecto'):
+            return self.HAIKU_MODEL
+
+        # Data extraction from previous context: most fields already filled
+        if filled_count >= (total_required - 1) and not has_complex_keyword:
+            return self.HAIKU_MODEL
+
+        # Default: use Sonnet for complex reasoning
+        return self.SONNET_MODEL
+
+    def cleanup_sessions(self):
+        """Remove sessions inactive for more than SESSION_TTL_SECONDS"""
+        now = time.time()
+        expired = [
+            sid for sid, s in self.sessions.items()
+            if now - s.get('last_activity', 0) > SESSION_TTL_SECONDS
+        ]
+        for sid in expired:
+            del self.sessions[sid]
+        if expired:
+            logger.info(f"Cleaned up {len(expired)} expired sessions")
 
     def create_session(self, session_id: str = None) -> str:
-        """Crear nueva sesión de conversación"""
+        """Crear nueva sesion de conversacion"""
+        self.cleanup_sessions()
+
+        if len(self.sessions) >= MAX_SESSIONS:
+            raise Exception("Too many active sessions. Try again later.")
+
         if not session_id:
             session_id = f"session_{int(datetime.now().timestamp())}"
 
@@ -78,6 +134,7 @@ class LUC1ClaudeHandler:
             'quotation_data': {},
             'current_step': 'greeting',
             'created_at': datetime.now().isoformat(),
+            'last_activity': time.time(),
             'completed_fields': set()
         }
 
@@ -156,8 +213,9 @@ TIPOS DE CARGA:
 
 Cuando tengas todos los datos, confirma la información y procede a generar la cotización automáticamente."""
 
-    def call_claude_api(self, messages: List[Dict], session_id: str) -> str:
-        """Llamar a la API de Claude Sonnet 4"""
+    def call_claude_api(self, messages: List[Dict], session_id: str, model: str = None) -> str:
+        """Llamar a la API de Claude"""
+        selected_model = model or self.model
         try:
             # Preparar los mensajes para la API
             api_messages = []
@@ -169,13 +227,11 @@ Cuando tengas todos los datos, confirma la información y procede a generar la c
                     "content": msg["content"]
                 })
 
-            # DEBUG: Imprimir mensajes que se envían a Claude
-            print(f"\n🔍 DEBUG - Mensajes enviados a Claude (Session: {session_id}):")
-            print(f"   Total de mensajes: {len(api_messages)}")
+            logger.info(f"Using model: {selected_model} for session {session_id}")
+            logger.debug(f"Mensajes enviados a Claude (Session: {session_id}), total: {len(api_messages)}")
             for i, msg in enumerate(api_messages):
                 content_preview = msg['content'][:100] if len(msg['content']) > 100 else msg['content']
-                print(f"   {i+1}. [{msg['role']}] {content_preview}...")
-            print()
+                logger.debug(f"  {i+1}. [{msg['role']}] {content_preview}...")
 
             headers = {
                 "Content-Type": "application/json",
@@ -184,10 +240,16 @@ Cuando tengas todos los datos, confirma la información y procede a generar la c
             }
 
             payload = {
-                "model": self.model,
+                "model": selected_model,
                 "max_tokens": 2000,
                 "temperature": 0.7,
-                "system": self.get_system_prompt(),
+                "system": [
+                    {
+                        "type": "text",
+                        "text": self.get_system_prompt(),
+                        "cache_control": {"type": "ephemeral"}
+                    }
+                ],
                 "messages": api_messages
             }
 
@@ -195,19 +257,19 @@ Cuando tengas todos los datos, confirma la información y procede a generar la c
                 self.api_url,
                 headers=headers,
                 json=payload,
-                timeout=120  # 2 minutos para respuestas conversacionales de Claude
+                timeout=30
             )
 
             if response.status_code == 200:
                 result = response.json()
                 return result["content"][0]["text"]
             else:
-                print(f"❌ Error API Claude: {response.status_code} - {response.text}")
+                logger.error(f"Error API Claude: {response.status_code} - {response.text}")
                 return "Lo siento, tengo problemas técnicos. Por favor, intenta de nuevo."
 
         except Exception as e:
-            print(f"❌ Error en llamada API: {e}")
-            return "Disculpa, hay un problema de conexión. Por favor, intenta nuevamente."
+            logger.error(f"Error en llamada API: {e}")
+            return "Disculpa, hay un problema de conexion. Por favor, intenta nuevamente."
 
     def extract_quotation_data(self, text: str, last_assistant_message: str = "") -> Dict:
         """Extraer datos de cotización del texto del usuario con contexto"""
@@ -446,21 +508,19 @@ Cuando tengas todos los datos, confirma la información y procede a generar la c
 
     def generate_quotation(self, session_id: str) -> Optional[Dict]:
         """Generar cotización llamando al backend de Node.js"""
-        print(f"\n🚀 ===== INICIANDO GENERACIÓN DE COTIZACIÓN =====")
-        print(f"   Session ID: {session_id}")
+        logger.info(f"Iniciando generacion de cotizacion, session: {session_id}")
 
         session = self.sessions.get(session_id, {})
         quotation_data = session.get('quotation_data', {})
 
-        print(f"   Datos de cotización extraídos: {quotation_data}")
+        logger.debug(f"Datos de cotizacion extraidos: {quotation_data}")
 
         try:
             # Transformar datos al formato del backend
             backend_payload = self._transform_to_backend_format(quotation_data)
 
-            print(f"\n📤 Enviando cotización al backend: {self.backend_url}/api/quotes/ai-generate")
-            print(f"📦 Payload completo:")
-            print(json.dumps(backend_payload, indent=2, ensure_ascii=False))
+            logger.debug(f"Enviando cotizacion al backend: {self.backend_url}/api/quotes/ai-generate")
+            logger.debug(f"Payload: {json.dumps(backend_payload, ensure_ascii=False)}")
 
             # Llamar al backend
             headers = {
@@ -469,33 +529,33 @@ Cuando tengas todos los datos, confirma la información y procede a generar la c
 
             if self.backend_auth_token:
                 headers['Authorization'] = f'Bearer {self.backend_auth_token}'
-                print(f"🔐 Usando token de autenticación")
+                logger.debug("Usando token de autenticacion")
 
-            print(f"🌐 Haciendo POST request a: {self.backend_url}/api/quotes/ai-generate")
+            logger.debug(f"POST request a: {self.backend_url}/api/quotes/ai-generate")
 
             response = requests.post(
                 f'{self.backend_url}/api/quotes/ai-generate',
                 json=backend_payload,
                 headers=headers,
-                timeout=300  # 5 minutos para todo el proceso (APIs externas + Claude análisis + cálculos)
+                timeout=60
             )
 
-            print(f"📡 Respuesta del backend - Status: {response.status_code}")
-            print(f"📄 Respuesta del backend - Body: {response.text[:500]}")
+            logger.debug(f"Respuesta del backend - Status: {response.status_code}")
+            logger.debug(f"Respuesta del backend - Body: {response.text[:500]}")
 
             if response.status_code == 200 or response.status_code == 201:
                 quote_result = response.json()
-                print(f"✅ Cotización generada exitosamente: {quote_result.get('quoteId', 'N/A')}")
+                logger.info(f"Cotizacion generada exitosamente: {quote_result.get('quoteId', 'N/A')}")
                 return quote_result
             else:
-                print(f"❌ Error del backend: {response.status_code}")
-                print(f"❌ Respuesta completa: {response.text}")
+                logger.error(f"Error del backend: {response.status_code}")
+                logger.error(f"Respuesta completa: {response.text}")
                 return None
 
         except Exception as e:
-            print(f"❌ ERROR CRÍTICO generando cotización: {e}")
+            logger.error(f"Error critico generando cotizacion: {e}")
             import traceback
-            traceback.print_exc()
+            logger.error(traceback.format_exc())
 
         return None
 
@@ -669,16 +729,21 @@ Cuando tengas todos los datos, confirma la información y procede a generar la c
                 import subprocess
                 subprocess.run(['xdg-open', f'http://localhost:3000/quotations/{quote_id}.html'], check=False)
             except:
-                print(f"📄 Cotización HTML disponible en: http://localhost:3000/quotations/{quote_id}.html")
+                logger.info(f"Cotizacion HTML disponible en: http://localhost:3000/quotations/{quote_id}.html")
 
         except Exception as e:
-            print(f"⚠️ Error generando HTML: {e}")
+            logger.warning(f"Error generando HTML: {e}")
 
     def generate_response(self, message: str, session_id: str = None) -> str:
         """Generar respuesta de LUC1"""
-        # Crear sesión si no existe
+        self.cleanup_sessions()
+
+        # Crear sesion si no existe
         if not session_id or session_id not in self.sessions:
             session_id = self.create_session(session_id)
+
+        # Update last activity
+        self.sessions[session_id]['last_activity'] = time.time()
 
         session = self.sessions[session_id]
 
@@ -693,15 +758,14 @@ Cuando tengas todos los datos, confirma la información y procede a generar la c
         # Extraer datos de cotización del mensaje con contexto
         extracted_data = self.extract_quotation_data(message, last_assistant_message)
 
-        print(f"\n📝 DEBUG - Datos extraídos del mensaje: {extracted_data}")
-        print(f"📝 DEBUG - Contexto (última pregunta): {last_assistant_message[:100]}...")
-        print(f"📦 DEBUG - Datos en sesión ANTES de actualizar: {session['quotation_data']}")
+        logger.debug(f"Datos extraidos del mensaje: {extracted_data}")
+        logger.debug(f"Contexto (ultima pregunta): {last_assistant_message[:100]}...")
+        logger.debug(f"Datos en sesion ANTES de actualizar: {session['quotation_data']}")
 
         # Actualizar datos de la sesión
         session['quotation_data'].update(extracted_data)
 
-        print(f"📦 DEBUG - Datos en sesión DESPUÉS de actualizar: {session['quotation_data']}")
-        print()
+        logger.debug(f"Datos en sesion DESPUES de actualizar: {session['quotation_data']}")
 
         # Agregar mensaje del usuario
         session['messages'].append({
@@ -712,10 +776,7 @@ Cuando tengas todos los datos, confirma la información y procede a generar la c
         # Verificar si está completa la información
         is_complete, missing_fields = self.check_completion_status(session_id)
 
-        print(f"🔍 DEBUG - Estado de completitud:")
-        print(f"   ¿Completo?: {is_complete}")
-        print(f"   Campos faltantes: {missing_fields}")
-        print(f"   Datos en sesión: {session['quotation_data']}")
+        logger.debug(f"Estado de completitud: completo={is_complete}, faltantes={missing_fields}")
 
         if is_complete:
             # Generar cotización automáticamente
@@ -781,8 +842,11 @@ Se creó un template profesional listo para enviar al cliente.
             # Agregar mensajes de la conversación
             messages_with_context.extend(session['messages'])
 
+            # Select model based on message complexity
+            model = self._select_model(message, session)
+
             # Llamar a Claude API con contexto
-            response = self.call_claude_api(messages_with_context, session_id)
+            response = self.call_claude_api(messages_with_context, session_id, model=model)
 
         # Agregar respuesta del asistente a la sesión
         session['messages'].append({
@@ -795,7 +859,7 @@ Se creó un template profesional listo para enviar al cliente.
     def load_model(self):
         """Simular carga del modelo (para compatibilidad)"""
         self.is_loaded = True
-        print("✅ LUC1 con Claude Sonnet 4 cargado correctamente")
+        logger.info("LUC1 con Claude Sonnet 4 cargado correctamente")
 
     def get_session_data(self, session_id: str) -> Dict:
         """Obtener datos de la sesión"""
@@ -812,13 +876,13 @@ Se creó un template profesional listo para enviar al cliente.
         Usado para análisis de precios de transportistas desde luc1Service.js
         """
         try:
-            print(f"🤖 LUC1 MODO AGENTE - Análisis directo iniciado")
+            logger.info("LUC1 MODO AGENTE - Analisis directo iniciado")
 
             # Crear prompt del sistema específico para análisis
             system_prompt = """Eres LUC1, un experto analista de logística europea especializado en evaluación de ofertas de transporte.
 
 TU ROL:
-Analizar ofertas de transportistas y datos de rutas para recomendar la mejor opción comercial para Stock Logistic.
+Analizar ofertas de transportistas y datos de rutas para recomendar la mejor opción comercial para AXEL.
 
 ANÁLISIS REQUERIDO:
 1. Evaluar precios de transportistas considerando confiabilidad
@@ -850,7 +914,13 @@ JUSTIFICACION: [explicación breve]"""
             data = {
                 "model": self.model,
                 "max_tokens": 2000,
-                "system": system_prompt,
+                "system": [
+                    {
+                        "type": "text",
+                        "text": system_prompt,
+                        "cache_control": {"type": "ephemeral"}
+                    }
+                ],
                 "messages": [
                     {
                         "role": "user",
@@ -864,21 +934,21 @@ JUSTIFICACION: [explicación breve]"""
                 self.api_url,
                 headers=headers,
                 json=data,
-                timeout=120  # 2 minutos para análisis complejos
+                timeout=30
             )
 
             if response.status_code == 200:
                 result = response.json()
                 analysis = result['content'][0]['text']
-                print(f"✅ Análisis completado: {len(analysis)} caracteres")
+                logger.info(f"Analisis completado: {len(analysis)} caracteres")
                 return analysis
             else:
-                print(f"❌ Error en API Claude: {response.status_code}")
-                print(f"   Response: {response.text}")
+                logger.error(f"Error en API Claude: {response.status_code}")
+                logger.error(f"Response: {response.text}")
                 raise Exception(f"Claude API error: {response.status_code}")
 
         except Exception as e:
-            print(f"❌ Error en análisis directo: {e}")
+            logger.error(f"Error en analisis directo: {e}")
             # Retornar análisis de fallback estructurado
             return """Análisis realizado con datos disponibles.
 

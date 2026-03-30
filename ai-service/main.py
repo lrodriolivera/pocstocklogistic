@@ -11,6 +11,7 @@ from typing import Optional, List, Dict
 from datetime import datetime
 import json
 import asyncio
+import time
 from loguru import logger
 import uvicorn
 
@@ -20,7 +21,7 @@ from prompts.luci_prompts import LuciPrompts
 # Initialize FastAPI app
 app = FastAPI(
     title="LUCI AI Service",
-    description="AI Assistant for Stock Logistic Solutions",
+    description="AI Assistant for AXEL Solutions",
     version="1.0.0"
 )
 
@@ -66,20 +67,45 @@ class HealthResponse(BaseModel):
     version: str = "1.0.0"
 
 # Session management
+MAX_SESSIONS = 100
+SESSION_TTL_SECONDS = 30 * 60  # 30 minutes
+
 sessions = {}
 
 class SessionManager:
     @staticmethod
+    def cleanup_expired_sessions():
+        """Remove sessions older than SESSION_TTL_SECONDS"""
+        now = time.time()
+        expired = [
+            sid for sid, s in sessions.items()
+            if now - s.get("last_activity", 0) > SESSION_TTL_SECONDS
+        ]
+        for sid in expired:
+            del sessions[sid]
+        if expired:
+            logger.info(f"Cleaned up {len(expired)} expired sessions")
+
+    @staticmethod
     def get_or_create_session(session_id: Optional[str], user_id: str) -> str:
         """Get existing session or create new one"""
         if session_id and session_id in sessions:
+            sessions[session_id]["last_activity"] = time.time()
             return session_id
+
+        # Cleanup before creating new session
+        SessionManager.cleanup_expired_sessions()
+
+        if len(sessions) >= MAX_SESSIONS:
+            raise HTTPException(status_code=503, detail="Too many active sessions. Try again later.")
 
         import uuid
         new_session_id = str(uuid.uuid4())
+        now = time.time()
         sessions[new_session_id] = {
             "user_id": user_id,
             "created_at": datetime.now(),
+            "last_activity": now,
             "messages": [],
             "context": {}
         }
@@ -89,6 +115,7 @@ class SessionManager:
     def add_message(session_id: str, role: str, content: str):
         """Add message to session history"""
         if session_id in sessions:
+            sessions[session_id]["last_activity"] = time.time()
             sessions[session_id]["messages"].append({
                 "role": role,
                 "content": content,
@@ -108,6 +135,12 @@ class SessionManager:
         context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
         return context
 
+async def session_cleanup_task():
+    """Background task that cleans up expired sessions every 5 minutes"""
+    while True:
+        await asyncio.sleep(300)  # 5 minutes
+        SessionManager.cleanup_expired_sessions()
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize LUCI model on server startup"""
@@ -117,6 +150,8 @@ async def startup_event():
         luci = get_luci_instance()
         # Preload model in background
         asyncio.create_task(preload_model())
+        # Start session cleanup background task
+        asyncio.create_task(session_cleanup_task())
         logger.success("✅ LUCI AI Service started successfully")
     except Exception as e:
         logger.error(f"❌ Failed to start LUCI: {e}")
