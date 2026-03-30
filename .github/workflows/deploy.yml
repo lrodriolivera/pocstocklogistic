@@ -1,0 +1,69 @@
+name: AXEL CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install backend deps
+        run: cd backend && npm ci
+      - name: Backend lint
+        run: cd backend && npm run lint --if-present
+      - name: Install frontend deps
+        run: cd frontend && npm ci
+      - name: Frontend build check
+        run: cd frontend && CI=false REACT_APP_API_URL="" npx react-scripts build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build frontend
+        run: |
+          cd frontend && npm ci
+          CI=false REACT_APP_API_URL="" npx react-scripts build
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/axel-key.pem
+          chmod 600 ~/.ssh/axel-key.pem
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy backend
+        run: |
+          scp -i ~/.ssh/axel-key.pem -r backend/src backend/package.json backend/package-lock.json ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/opt/axel/backend/
+          ssh -i ~/.ssh/axel-key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'cd /opt/axel/backend && npm install --production && pm2 restart axel-backend'
+
+      - name: Deploy AI service
+        run: |
+          scp -i ~/.ssh/axel-key.pem backend/src/services/*.js ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/opt/axel/backend/src/services/ 2>/dev/null || true
+          scp -i ~/.ssh/axel-key.pem ai-service/*.py ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/opt/axel/ai-service/
+          ssh -i ~/.ssh/axel-key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'pm2 restart axel-ai'
+
+      - name: Deploy frontend
+        run: |
+          ssh -i ~/.ssh/axel-key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'rm -rf /opt/axel/frontend/*'
+          scp -i ~/.ssh/axel-key.pem -r frontend/build/* ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/opt/axel/frontend/
+          ssh -i ~/.ssh/axel-key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo chmod -R 755 /opt/axel/frontend'
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          curl -sf https://axel.strixai.es/health || exit 1
+          echo "Deployment successful!"
