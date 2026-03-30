@@ -2,11 +2,17 @@ const MasterQuoteService = require('../services/masterQuoteService');
 const OpenRouteService = require('../services/openRouteService');
 const { validationResult } = require('express-validator');
 const { getEmailService } = require('../services/emailService');
+const { buildTenantFilter } = require('../middleware/tenant');
 
 class QuoteController {
   constructor() {
     this.masterQuoteService = new MasterQuoteService();
     this.openRouteService = new OpenRouteService();
+  }
+
+  /** Build a base match filter scoped by tenant */
+  _tenantMatch(req, extra = {}) {
+    return buildTenantFilter(req, extra);
   }
 
   /**
@@ -43,9 +49,10 @@ class QuoteController {
           ...quoteRequest.cargo,
           isHazardous: quoteRequest.cargo.type === 'adr'
         },
-        // Assign commercial agent from authenticated user
+        // Assign commercial agent and tenant from authenticated user
         assignedTo: req.user ? req.user._id.toString() : null,
-        createdBy: req.user ? req.user._id.toString() : 'system'
+        createdBy: req.user ? req.user._id.toString() : 'system',
+        tenantId: req.tenantId || null
       };
 
       console.log('Quote generation started:', {
@@ -310,9 +317,10 @@ class QuoteController {
       sixMonthsAgo.setDate(1);
       sixMonthsAgo.setHours(0, 0, 0, 0);
 
-      // Monthly quotes aggregation
+      // Monthly quotes aggregation (tenant-scoped)
+      const tenantFilter = this._tenantMatch(req);
       const monthlyQuotes = await Quote.aggregate([
-        { $match: { createdAt: { $gte: sixMonthsAgo } } },
+        { $match: { ...tenantFilter, createdAt: { $gte: sixMonthsAgo } } },
         {
           $group: {
             _id: {
@@ -333,8 +341,9 @@ class QuoteController {
         revenue: Math.round(item.revenue * 100) / 100
       }));
 
-      // By status
+      // By status (tenant-scoped)
       const byStatus = await Quote.aggregate([
+        { $match: tenantFilter },
         {
           $group: {
             _id: '$status',
@@ -348,16 +357,16 @@ class QuoteController {
         count: item.count
       }));
 
-      // Recent 10 quotes
-      const recentQuotes = await Quote.find({})
+      // Recent 10 quotes (tenant-scoped)
+      const recentQuotes = await Quote.find(tenantFilter)
         .sort({ createdAt: -1 })
         .limit(10)
         .select('quoteId status client.company costBreakdown.total route.origin route.destination createdAt tracking.assignedTo')
         .lean();
 
-      // Top agents by revenue (from accepted quotes)
+      // Top agents by revenue (from accepted quotes, tenant-scoped)
       const topAgents = await Quote.aggregate([
-        { $match: { status: 'accepted', 'tracking.assignedTo': { $exists: true, $ne: null } } },
+        { $match: { ...tenantFilter, status: 'accepted', 'tracking.assignedTo': { $exists: true, $ne: null } } },
         {
           $group: {
             _id: '$tracking.assignedTo',

@@ -344,21 +344,30 @@ const requireResourceOwnership = (getResourceOwnerId) => async (req, res, next) 
 };
 
 /**
- * Build query filter based on user role
+ * Build query filter based on user role and tenant
  * @param {Object} user - The authenticated user
  * @param {string} fieldName - The field name to filter on (default: 'createdBy')
- * @returns {Object} MongoDB query filter
+ * @returns {Object} MongoDB query filter scoped by role and tenant
  */
 const buildRoleFilter = async (user, fieldName = 'createdBy') => {
-  if (user.role === 'alta_gerencia') return {};
+  const filter = {};
+
+  // Scope by tenant if user has one
+  if (user.tenantId) {
+    filter.tenantId = user.tenantId;
+  }
+
+  if (user.role === 'alta_gerencia') return filter;
 
   if (user.role === 'supervisor') {
     const supervisor = await User.findById(user._id);
     const ids = [...supervisor.managedAgents, user._id];
-    return { [fieldName]: { $in: ids } };
+    filter[fieldName] = { $in: ids };
+    return filter;
   }
 
-  return { [fieldName]: user._id };
+  filter[fieldName] = user._id;
+  return filter;
 };
 
 module.exports = {

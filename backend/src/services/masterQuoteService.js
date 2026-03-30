@@ -235,7 +235,10 @@ class MasterQuoteService {
       };
 
       // PASO 6: Guardar cotización en la base de datos
-      const savedQuote = await this.saveQuoteToDatabase(quoteResult);
+      const savedQuote = await this.saveQuoteToDatabase(quoteResult, {
+        tenantId: quoteRequest.tenantId,
+        assignedTo: quoteRequest.assignedTo
+      });
 
       // Retornar la instancia de Mongoose guardada (tiene métodos como generateClientAccessToken)
       // Si falla el guardado, retornar el objeto plano como fallback
@@ -434,12 +437,13 @@ class MasterQuoteService {
   /**
    * 💾 Guardar cotización en la base de datos MongoDB
    */
-  async saveQuoteToDatabase(quoteResult) {
+  async saveQuoteToDatabase(quoteResult, { tenantId, assignedTo } = {}) {
     try {
       console.log(`💾 Guardando cotización ${quoteResult.quoteId} en la base de datos...`);
 
       // Create a new Quote document
       const quote = new Quote({
+        tenantId: tenantId || undefined,
         quoteId: quoteResult.quoteId,
         route: quoteResult.route,
         cargo: quoteResult.cargo,
@@ -485,7 +489,7 @@ class MasterQuoteService {
             isActive: false
           },
           communications: [],
-          assignedTo: 'demo-commercial-001', // Temporary until auth is implemented
+          assignedTo: assignedTo || 'system',
           negotiations: []
         }
       });

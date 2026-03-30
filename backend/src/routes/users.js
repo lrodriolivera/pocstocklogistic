@@ -21,8 +21,11 @@ router.use(authenticateToken);
 router.get('/', async (req, res) => {
   try {
     const User = require('../models/User');
-    // Alta gerencia can see all users including inactive
+    // Scope by tenant, then by role
     let query = req.user.role === 'alta_gerencia' ? {} : { isActive: true };
+    if (req.tenantId) {
+      query.tenantId = req.tenantId;
+    }
 
     // Role-based filtering
     if (req.user.role === 'supervisor') {
@@ -193,6 +196,12 @@ router.get('/dashboard/statistics', requireMinimumRole('supervisor'), async (req
 
     let userFilter = {};
     let quoteFilter = {};
+
+    // Scope by tenant
+    if (req.tenantId) {
+      userFilter.tenantId = req.tenantId;
+      quoteFilter.tenantId = req.tenantId;
+    }
 
     // Apply role-based filtering
     if (req.user.role === 'supervisor') {

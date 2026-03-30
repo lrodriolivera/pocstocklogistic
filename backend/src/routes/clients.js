@@ -5,11 +5,13 @@ const {
   requireMinimumRole,
   buildRoleFilter
 } = require('../middleware/auth');
+const { requireTenant, stampTenant } = require('../middleware/tenant');
 
 const router = express.Router();
 
-// All routes require authentication
+// All routes require authentication and tenant
 router.use(authenticateToken);
+router.use(requireTenant);
 
 // GET /api/clients/stats - basic stats (must be before /:id)
 router.get('/stats', async (req, res) => {
@@ -139,6 +141,9 @@ router.post('/', async (req, res) => {
       notes,
       createdBy: req.user._id
     });
+
+    // Stamp tenant from authenticated user
+    stampTenant(req, client);
 
     await client.save();
 

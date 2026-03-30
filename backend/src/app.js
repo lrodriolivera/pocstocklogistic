@@ -77,6 +77,7 @@ const chatRoutes = require('./routes/chat');
 const freightExchangeRoutes = require('./routes/freightExchange');
 const clientsRoutes = require('./routes/clients');
 const emailRoutes = require('./routes/email');
+const tenantsRoutes = require('./routes/tenants');
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -90,6 +91,7 @@ app.use('/api/load-calculator', loadCalculatorRoutes);
 app.use('/api/freight-exchange', freightExchangeRoutes);
 app.use('/api/clients', clientsRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/tenants', tenantsRoutes);
 
 // API status endpoint
 app.get('/api/status', (req, res) => {
