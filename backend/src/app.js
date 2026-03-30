@@ -41,6 +41,21 @@ app.use(cors({
   credentials: true
 }));
 app.use(morgan('combined'));
+
+// Stripe webhook needs raw body BEFORE json parser
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  try {
+    const { getStripeService } = require('./services/stripeService');
+    const stripe = getStripeService();
+    const sig = req.headers['stripe-signature'];
+    const result = await stripe.handleWebhook(req.body, sig);
+    res.json(result);
+  } catch (err) {
+    console.error('Stripe webhook error:', err.message);
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/', limiter);
@@ -78,6 +93,7 @@ const freightExchangeRoutes = require('./routes/freightExchange');
 const clientsRoutes = require('./routes/clients');
 const emailRoutes = require('./routes/email');
 const tenantsRoutes = require('./routes/tenants');
+const billingRoutes = require('./routes/billing');
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -92,6 +108,7 @@ app.use('/api/freight-exchange', freightExchangeRoutes);
 app.use('/api/clients', clientsRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/tenants', tenantsRoutes);
+app.use('/api/billing', billingRoutes);
 
 // API status endpoint
 app.get('/api/status', (req, res) => {
