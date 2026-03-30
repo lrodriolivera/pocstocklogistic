@@ -29,6 +29,13 @@ luci.log
 *.swp
 *.swo
 
+# Sensitive / credentials
+Credenciales_AWS/
+*.csv.bak
+
+# Media files
+Audios/
+
 # OS
 .DS_Store
 Thumbs.db
