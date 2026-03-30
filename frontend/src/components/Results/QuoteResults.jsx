@@ -17,6 +17,7 @@ import {
   Activity,
   Copy
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import RouteMap from '../Map/RouteMap';
 import CostBreakdown from '../Cost/CostBreakdown';
 import { useAuth } from '../../context/AuthContext';
@@ -97,7 +98,7 @@ const QuoteResults = ({ results }) => {
         selectedOptionIndex: selectedOption
       };
 
-      const response = await fetch('/api/pdf/quote', {
+      const response = await authFetch('/api/pdf/quote', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,13 +124,13 @@ const QuoteResults = ({ results }) => {
       }
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      alert(`Error al generar el PDF: ${error.message}`);
+      toast.error(`Error al generar el PDF: ${error.message}`);
     }
   };
 
   const generateEmailTemplate = async () => {
     if (!data.quoteId) {
-      alert('No hay ID de cotización disponible');
+      toast.error('No hay ID de cotización disponible');
       return;
     }
 
@@ -153,11 +154,11 @@ const QuoteResults = ({ results }) => {
         setShowEmailModal(true);
       } else {
         const error = await response.json();
-        alert(`Error generando plantilla: ${error.error}`);
+        toast.error(`Error generando plantilla: ${error.error}`);
       }
     } catch (error) {
       console.error('Error generando email:', error);
-      alert(`Error generando plantilla de email: ${error.message}`);
+      toast.error(`Error generando plantilla de email: ${error.message}`);
     } finally {
       setIsGeneratingEmail(false);
     }
@@ -165,13 +166,13 @@ const QuoteResults = ({ results }) => {
 
   const getTimeline = async () => {
     if (!data.quoteId) {
-      alert('No hay ID de cotización disponible');
+      toast.error('No hay ID de cotización disponible');
       return;
     }
 
     setIsLoadingTracking(true);
     try {
-      const response = await fetch(`/api/quotes/${data.quoteId}/timeline`);
+      const response = await authFetch(`/api/quotes/${data.quoteId}/timeline`);
 
       if (response.ok) {
         const result = await response.json();
@@ -179,11 +180,11 @@ const QuoteResults = ({ results }) => {
         setShowTrackingModal(true);
       } else {
         const error = await response.json();
-        alert(`Error obteniendo seguimiento: ${error.error}`);
+        toast.error(`Error obteniendo seguimiento: ${error.error}`);
       }
     } catch (error) {
       console.error('Error obteniendo timeline:', error);
-      alert(`Error obteniendo seguimiento: ${error.message}`);
+      toast.error(`Error obteniendo seguimiento: ${error.message}`);
     } finally {
       setIsLoadingTracking(false);
     }
@@ -191,9 +192,9 @@ const QuoteResults = ({ results }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
-      alert('Copiado al portapapeles');
+      toast.success('Copiado al portapapeles');
     }).catch(() => {
-      alert('Error al copiar al portapapeles');
+      toast.error('Error al copiar al portapapeles');
     });
   };
 
@@ -211,36 +212,36 @@ const QuoteResults = ({ results }) => {
     <div className="space-y-6">
       {/* Header de Resultados */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Resultados de Cotización</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Resultados de Cotizacion</h2>
             <p className="text-gray-600">ID: {data.quoteId}</p>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             {options.length > 0 && (
               <button
                 onClick={() => downloadPDF(options[selectedOption])}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
               >
-                <Download className="w-4 h-4 mr-2" />
-                Descargar PDF
+                <Download className="w-4 h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Descargar</span> PDF
               </button>
             )}
             <button
               onClick={generateEmailTemplate}
               disabled={isGeneratingEmail}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              className="flex items-center px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm"
             >
-              <Mail className="w-4 h-4 mr-2" />
-              {isGeneratingEmail ? 'Generando...' : 'Enviar por Email'}
+              <Mail className="w-4 h-4 mr-1 sm:mr-2" />
+              {isGeneratingEmail ? 'Generando...' : <><span className="hidden sm:inline">Enviar por </span>Email</>}
             </button>
             <button
               onClick={getTimeline}
               disabled={isLoadingTracking}
-              className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              className="flex items-center px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm"
             >
-              <Activity className="w-4 h-4 mr-2" />
-              {isLoadingTracking ? 'Cargando...' : 'Ver Seguimiento'}
+              <Activity className="w-4 h-4 mr-1 sm:mr-2" />
+              {isLoadingTracking ? 'Cargando...' : <><span className="hidden sm:inline">Ver </span>Seguimiento</>}
             </button>
           </div>
         </div>
@@ -272,10 +273,10 @@ const QuoteResults = ({ results }) => {
           </div>
         </div>
 
-        {/* Información de Carga */}
+        {/* Informacion de Carga */}
         <div className="bg-gray-50 rounded-lg p-4 mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Información de Carga</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Informacion de Carga</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <p className="text-sm text-gray-600">Peso</p>
               <p className="font-semibold">{data.cargo?.weight || 'N/A'} kg</p>
@@ -345,7 +346,7 @@ const QuoteResults = ({ results }) => {
       </div>
 
       {/* Opciones de Servicio */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {options.map((option, index) => {
           const badge = getServiceBadge(option.type?.toLowerCase() || 'standard');
           const isSelected = selectedOption === index;
@@ -497,7 +498,7 @@ const QuoteResults = ({ results }) => {
             <div>
               <h4 className="font-medium text-gray-900 mb-3">Información del Transportista</h4>
               <div className="space-y-2 text-sm">
-                <p><span className="font-medium">Empresa:</span> {options[selectedOption].carrier?.name || 'Stock Logistic Network'}</p>
+                <p><span className="font-medium">Empresa:</span> {options[selectedOption].carrier?.name || 'AXEL Network'}</p>
                 <p><span className="font-medium">Rating:</span>
                   <span className="flex items-center ml-1">
                     {[...Array(5)].map((_, i) => (
@@ -525,20 +526,20 @@ const QuoteResults = ({ results }) => {
             </div>
           </div>
 
-          {/* Botones de Acción */}
-          <div className="mt-6 flex flex-wrap gap-3">
-            <button className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">
+          {/* Botones de Accion */}
+          <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3">
+            <button className="flex items-center justify-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm sm:text-base">
               <CheckCircle className="w-4 h-4 mr-2" />
-              Aceptar Cotización
+              Aceptar Cotizacion
             </button>
-            <button className="flex items-center px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+            <button className="flex items-center justify-center px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm sm:text-base">
               <FileText className="w-4 h-4 mr-2" />
-              Solicitar Modificación
+              Solicitar Modificacion
             </button>
             <button
               onClick={generateEmailTemplate}
               disabled={isGeneratingEmail}
-              className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              className="flex items-center justify-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm sm:text-base"
             >
               <Mail className="w-4 h-4 mr-2" />
               {isGeneratingEmail ? 'Generando...' : 'Enviar por Email'}

@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
 
   // Remove trailing /api if present, then add it back to ensure consistency
-  const BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '');
+  const BASE_URL = (process.env.REACT_APP_API_URL ?? '').replace(/\/api\/?$/, '');
   const API_BASE_URL = `${BASE_URL}/api`;
 
   useEffect(() => {

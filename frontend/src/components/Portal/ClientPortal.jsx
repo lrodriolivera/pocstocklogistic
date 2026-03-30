@@ -311,7 +311,7 @@ const ClientPortal = () => {
             <div className="flex items-center">
               <Truck className="h-8 w-8 text-blue-600 mr-3" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Stock Logistic Solutions</h1>
+                <h1 className="text-2xl font-bold text-gray-900">AXEL Solutions</h1>
                 <p className="text-gray-600">Portal del Cliente</p>
               </div>
             </div>
@@ -529,7 +529,7 @@ const ClientPortal = () => {
                       <span className={`text-sm font-semibold ${
                         negotiation.proposedBy === 'client' ? 'text-orange-700' : 'text-blue-700'
                       }`}>
-                        {negotiation.proposedBy === 'client' ? '👤 Su propuesta' : '💼 Stock Logistic'}
+                        {negotiation.proposedBy === 'client' ? '👤 Su propuesta' : '💼 AXEL'}
                       </span>
                       <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
                         negotiation.status === 'pending'
@@ -706,8 +706,8 @@ const ClientPortal = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">📞 Información de Contacto</h3>
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-sm text-gray-600 mb-2">Para consultas sobre esta cotización, contacte con:</p>
-            <p className="font-semibold text-gray-900">Stock Logistic Solutions</p>
-            <p className="text-gray-600">Email: info@stocklogistic.com</p>
+            <p className="font-semibold text-gray-900">AXEL Solutions</p>
+            <p className="text-gray-600">Email: info@axel.es</p>
             <p className="text-gray-600">Teléfono: +34 900 000 000</p>
             <p className="text-xs text-gray-500 mt-3">
               Referencia de cotización: {quote.quote.quoteId}
@@ -719,7 +719,7 @@ const ClientPortal = () => {
       {/* Footer */}
       <div className="bg-gray-800 text-white py-8 mt-12">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <p className="text-gray-300">© 2025 Stock Logistic Solutions. Todos los derechos reservados.</p>
+          <p className="text-gray-300">© 2025 AXEL Solutions. Todos los derechos reservados.</p>
           <p className="text-sm text-gray-400 mt-2">Portal seguro del cliente - Cotización válida hasta {formatDate(quote.quote.validUntil)}</p>
         </div>
       </div>

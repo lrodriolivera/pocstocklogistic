@@ -195,7 +195,7 @@ const CostBreakdown = ({ costData, serviceType }) => {
                   <span>{formatCurrency(costData.subtotal * (costData.adjustmentFactor - 1))}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Margen Stock Logistic:</span>
+                  <span>Margen AXEL:</span>
                   <span>{formatCurrency(costData.margin)}</span>
                 </div>
                 <div className="border-t border-blue-200 pt-2">

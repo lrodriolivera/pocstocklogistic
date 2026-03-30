@@ -23,7 +23,22 @@ import {
 } from 'lucide-react';
 import LoadingSpinner from '../UI/LoadingSpinner';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_API_URL ?? '';
+
+// Platform badge colors
+const PLATFORM_COLORS = {
+  timocom: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' },
+  wtransnet: { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500' },
+  teleroute: { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
+  transeu: { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500' }
+};
+
+const PLATFORM_NAMES = {
+  timocom: 'Timocom',
+  wtransnet: 'Wtransnet',
+  teleroute: 'Teleroute',
+  transeu: 'Trans.eu'
+};
 
 const FreightExchange = () => {
   const { authFetch } = useAuth();
@@ -71,6 +86,13 @@ const FreightExchange = () => {
     { code: 'AT', name: 'Austria' },
     { code: 'CH', name: 'Suiza' },
     { code: 'CZ', name: 'Rep. Checa' },
+    { code: 'HU', name: 'Hungria' },
+    { code: 'RO', name: 'Rumania' },
+    { code: 'SK', name: 'Eslovaquia' },
+    { code: 'DK', name: 'Dinamarca' },
+    { code: 'SE', name: 'Suecia' },
+    { code: 'BG', name: 'Bulgaria' },
+    { code: 'GB', name: 'Reino Unido' },
     { code: 'MA', name: 'Marruecos' }
   ];
 
@@ -78,6 +100,10 @@ const FreightExchange = () => {
     { value: 'TAUTLINER', label: 'Tautliner / Lona' },
     { value: 'MEGA_TRAILER', label: 'Mega Trailer' },
     { value: 'FRIGORIFICO', label: 'Frigorifico' },
+    { value: 'CURTAINSIDE', label: 'Curtainside' },
+    { value: 'BOX_TRUCK', label: 'Box Truck / Furgon' },
+    { value: 'REFRIGERATED', label: 'Refrigerado' },
+    { value: 'PLATFORM', label: 'Plataforma' },
     { value: 'CISTERNA', label: 'Cisterna' },
     { value: 'PORTACOCHES', label: 'Portacoches' }
   ];
@@ -206,6 +232,16 @@ const FreightExchange = () => {
     }
   };
 
+  const getPlatformBadge = (source) => {
+    const colors = PLATFORM_COLORS[source] || { bg: 'bg-gray-100', text: 'text-gray-700' };
+    const name = PLATFORM_NAMES[source] || source;
+    return (
+      <span className={`px-2 py-1 text-xs font-medium rounded ${colors.bg} ${colors.text}`}>
+        {name}
+      </span>
+    );
+  };
+
   const OfferCard = ({ offer, index }) => {
     const isExpanded = expandedOffer === index;
 
@@ -218,13 +254,7 @@ const FreightExchange = () => {
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <span className={`px-2 py-1 text-xs font-medium rounded ${
-                  offer.source === 'timocom'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-green-100 text-green-700'
-                }`}>
-                  {offer.source === 'timocom' ? 'Timocom' : 'Wtransnet'}
-                </span>
+                {getPlatformBadge(offer.source)}
                 <span className="text-gray-400 text-xs">{offer.id}</span>
               </div>
 
@@ -314,43 +344,45 @@ const FreightExchange = () => {
     );
   };
 
-  const VehicleCard = ({ vehicle }) => (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <div className="flex justify-between items-start">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Truck className="w-5 h-5 text-blue-500" />
-            <span className="font-medium">{vehicle.vehicle?.type}</span>
-            <span className={`px-2 py-1 text-xs rounded ${
-              vehicle.source === 'timocom' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-            }`}>
-              {vehicle.source === 'timocom' ? 'Timocom' : 'Wtransnet'}
-            </span>
+  const VehicleCard = ({ vehicle }) => {
+    const colors = PLATFORM_COLORS[vehicle.source] || { bg: 'bg-gray-100', text: 'text-gray-700' };
+
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Truck className="w-5 h-5 text-blue-500" />
+              <span className="font-medium">{vehicle.vehicle?.type}</span>
+              <span className={`px-2 py-1 text-xs rounded ${colors.bg} ${colors.text}`}>
+                {PLATFORM_NAMES[vehicle.source] || vehicle.source}
+              </span>
+            </div>
+            <div className="text-sm text-gray-600 space-y-1">
+              <p className="flex items-center gap-2">
+                <MapPin className="w-3 h-3" />
+                {vehicle.location?.city}, {vehicle.location?.country}
+              </p>
+              <p className="flex items-center gap-2">
+                <Calendar className="w-3 h-3" />
+                {vehicle.availableFrom} - {vehicle.availableTo}
+              </p>
+            </div>
           </div>
-          <div className="text-sm text-gray-600 space-y-1">
-            <p className="flex items-center gap-2">
-              <MapPin className="w-3 h-3" />
-              {vehicle.location?.city}, {vehicle.location?.country}
-            </p>
-            <p className="flex items-center gap-2">
-              <Calendar className="w-3 h-3" />
-              {vehicle.availableFrom} - {vehicle.availableTo}
-            </p>
+          <div className="text-right text-sm">
+            <p className="font-medium">{vehicle.vehicle?.capacity?.toLocaleString()} kg</p>
+            <p className="text-gray-500">{vehicle.vehicle?.loadingMeters} m</p>
           </div>
         </div>
-        <div className="text-right text-sm">
-          <p className="font-medium">{vehicle.vehicle?.capacity?.toLocaleString()} kg</p>
-          <p className="text-gray-500">{vehicle.vehicle?.loadingMeters} m</p>
-        </div>
+        {vehicle.contact && (
+          <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+            <Building2 className="w-3 h-3 inline mr-1" />
+            {vehicle.contact.company}
+          </div>
+        )}
       </div>
-      {vehicle.contact && (
-        <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-          <Building2 className="w-3 h-3 inline mr-1" />
-          {vehicle.contact.company}
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -358,23 +390,31 @@ const FreightExchange = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Bolsas de Carga</h1>
-          <p className="text-gray-600">Busca ofertas en Timocom y Wtransnet</p>
+          <p className="text-gray-600">Busca ofertas en Timocom, Wtransnet, Teleroute y Trans.eu</p>
         </div>
         <div className="flex items-center gap-2">
           {platforms && (
-            <div className="flex gap-2">
-              {platforms.map(p => (
-                <span
-                  key={p.id}
-                  className={`px-3 py-1 text-xs rounded-full ${
-                    p.apiStatus === 'configured' || p.apiStatus === 'credentials_ready'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}
-                >
-                  {p.name}: {p.apiStatus === 'demo_mode' ? 'Demo' : 'Activo'}
-                </span>
-              ))}
+            <div className="flex flex-wrap gap-2">
+              {platforms.map(p => {
+                const colors = PLATFORM_COLORS[p.id] || { bg: 'bg-gray-100', text: 'text-gray-700', dot: 'bg-gray-500' };
+                return (
+                  <span
+                    key={p.id}
+                    className={`px-3 py-1 text-xs rounded-full flex items-center gap-1.5 ${
+                      p.apiStatus === 'configured' || p.apiStatus === 'credentials_ready'
+                        ? `${colors.bg} ${colors.text}`
+                        : 'bg-yellow-100 text-yellow-700'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      p.apiStatus === 'configured' || p.apiStatus === 'credentials_ready'
+                        ? colors.dot
+                        : 'bg-yellow-500'
+                    }`} />
+                    {p.name}: {p.apiStatus === 'demo_mode' ? 'Demo' : 'Activo'}
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>
@@ -530,6 +570,8 @@ const FreightExchange = () => {
                   <option value="all">Todas</option>
                   <option value="timocom">Timocom</option>
                   <option value="wtransnet">Wtransnet</option>
+                  <option value="teleroute">Teleroute</option>
+                  <option value="transeu">Trans.eu</option>
                 </select>
               </div>
             </div>
@@ -553,9 +595,16 @@ const FreightExchange = () => {
                 <h3 className="text-lg font-semibold text-gray-900">
                   Resultados ({searchResults.metadata?.totalOffers || 0} ofertas)
                 </h3>
-                <div className="flex gap-4 text-sm text-gray-500">
-                  <span>Timocom: {searchResults.metadata?.byPlatform?.timocom || 0}</span>
-                  <span>Wtransnet: {searchResults.metadata?.byPlatform?.wtransnet || 0}</span>
+                <div className="flex flex-wrap gap-3 text-sm text-gray-500">
+                  {Object.entries(searchResults.metadata?.byPlatform || {}).map(([platform, count]) => {
+                    const colors = PLATFORM_COLORS[platform] || { text: 'text-gray-700' };
+                    return (
+                      <span key={platform} className={`flex items-center gap-1 ${colors.text}`}>
+                        <span className={`w-2 h-2 rounded-full ${PLATFORM_COLORS[platform]?.dot || 'bg-gray-400'}`} />
+                        {PLATFORM_NAMES[platform] || platform}: {count}
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -654,35 +703,30 @@ const FreightExchange = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Publicar en
               </label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={publishForm.platforms.includes('timocom')}
-                    onChange={(e) => {
-                      const newPlatforms = e.target.checked
-                        ? [...publishForm.platforms, 'timocom']
-                        : publishForm.platforms.filter(p => p !== 'timocom');
-                      setPublishForm({...publishForm, platforms: newPlatforms});
-                    }}
-                    className="rounded border-gray-300"
-                  />
-                  <span>Timocom</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={publishForm.platforms.includes('wtransnet')}
-                    onChange={(e) => {
-                      const newPlatforms = e.target.checked
-                        ? [...publishForm.platforms, 'wtransnet']
-                        : publishForm.platforms.filter(p => p !== 'wtransnet');
-                      setPublishForm({...publishForm, platforms: newPlatforms});
-                    }}
-                    className="rounded border-gray-300"
-                  />
-                  <span>Wtransnet</span>
-                </label>
+              <div className="flex flex-wrap gap-4">
+                {['timocom', 'wtransnet', 'teleroute', 'transeu'].map(platformId => {
+                  const colors = PLATFORM_COLORS[platformId];
+                  const name = PLATFORM_NAMES[platformId];
+                  return (
+                    <label key={platformId} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={publishForm.platforms.includes(platformId)}
+                        onChange={(e) => {
+                          const newPlatforms = e.target.checked
+                            ? [...publishForm.platforms, platformId]
+                            : publishForm.platforms.filter(p => p !== platformId);
+                          setPublishForm({...publishForm, platforms: newPlatforms});
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      <span className={`flex items-center gap-1 ${colors.text}`}>
+                        <span className={`w-2 h-2 rounded-full ${colors.dot}`} />
+                        {name}
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
@@ -866,8 +910,20 @@ const FreightExchange = () => {
             </a>
           </div>
           <div>
-            <span className="font-medium text-green-700">Wtransnet</span> - Especializada en sur de Europa: ES, PT, FR, IT, MA
+            <span className="font-medium text-orange-700">Wtransnet</span> - Especializada en sur de Europa: ES, PT, FR, IT, MA
             <a href="https://www.wtransnet.com" target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-500 hover:underline inline-flex items-center">
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+          <div>
+            <span className="font-medium text-green-700">Teleroute</span> - Alpega Group, Europa Occidental: ES, FR, BE, NL, LU, DE, IT, PT, CH, AT, GB
+            <a href="https://www.teleroute.com" target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-500 hover:underline inline-flex items-center">
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+          <div>
+            <span className="font-medium text-purple-700">Trans.eu</span> - Europa Central y del Este: PL, DE, CZ, SK, HU, RO, BG, LT, LV, EE, AT, DK, SE
+            <a href="https://www.trans.eu" target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-500 hover:underline inline-flex items-center">
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>

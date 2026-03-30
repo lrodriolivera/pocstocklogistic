@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Bell,
   X,
@@ -8,83 +8,43 @@ import {
   TrendingUp,
   Truck,
   Clock,
-  DollarSign
+  DollarSign,
+  XCircle
 } from 'lucide-react';
+import { useSocket } from '../../context/SocketContext';
 
 const NotificationCenter = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: 'success',
-      title: 'Cotización Aceptada',
-      message: 'Timber Corp ha aceptado la cotización #1247 por €2,450',
-      time: '2 min ago',
-      icon: CheckCircle,
-      unread: true
-    },
-    {
-      id: 2,
-      type: 'info',
-      title: 'Nueva Ruta Optimizada',
-      message: 'LUC1-COMEX encontró una ruta 15% más eficiente para Madrid-Berlín',
-      time: '15 min ago',
-      icon: TrendingUp,
-      unread: true
-    },
-    {
-      id: 3,
-      type: 'warning',
-      title: 'Restricción de Tráfico',
-      message: 'Detectadas restricciones en A7 Francia. Ruta alternativa sugerida.',
-      time: '1 hora ago',
-      icon: AlertTriangle,
-      unread: false
-    },
-    {
-      id: 4,
-      type: 'success',
-      title: 'Entrega Completada',
-      message: 'Envío #1245 entregado exitosamente en Milano',
-      time: '2 horas ago',
-      icon: Truck,
-      unread: false
-    },
-    {
-      id: 5,
-      type: 'info',
-      title: 'Actualización de Precios',
-      message: 'Precios de combustible actualizados para rutas europeas',
-      time: '3 horas ago',
-      icon: DollarSign,
-      unread: false
-    }
-  ]);
+  const { notifications, clearNotifications, markAsRead } = useSocket();
 
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const unreadCount = notifications.filter(n => n.unread !== false).length;
 
-  const getTypeStyles = (type) => {
+  const getNotificationConfig = (type) => {
     switch (type) {
-      case 'success':
+      case 'quote_accepted':
         return {
+          icon: CheckCircle,
           bg: 'bg-green-50',
           border: 'border-green-200',
           iconColor: 'text-green-600'
         };
-      case 'warning':
+      case 'quote_rejected':
         return {
-          bg: 'bg-yellow-50',
-          border: 'border-yellow-200',
-          iconColor: 'text-yellow-600'
+          icon: XCircle,
+          bg: 'bg-red-50',
+          border: 'border-red-200',
+          iconColor: 'text-red-600'
         };
-      case 'info':
+      case 'quote_generated':
         return {
+          icon: TrendingUp,
           bg: 'bg-blue-50',
           border: 'border-blue-200',
           iconColor: 'text-blue-600'
         };
       default:
         return {
+          icon: Info,
           bg: 'bg-gray-50',
           border: 'border-gray-200',
           iconColor: 'text-gray-600'
@@ -92,24 +52,17 @@ const NotificationCenter = () => {
     }
   };
 
-  const markAsRead = (id) => {
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.id === id
-          ? { ...notification, unread: false }
-          : notification
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notification => ({ ...notification, unread: false }))
-    );
-  };
-
-  const deleteNotification = (id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '';
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffMs = now - time;
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Ahora';
+    if (diffMin < 60) return `${diffMin} min`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours}h`;
+    return `${Math.floor(diffHours / 24)}d`;
   };
 
   return (
@@ -145,12 +98,12 @@ const NotificationCenter = () => {
                 <p className="text-sm text-gray-500">{unreadCount} sin leer</p>
               </div>
               <div className="flex items-center space-x-2">
-                {unreadCount > 0 && (
+                {notifications.length > 0 && (
                   <button
-                    onClick={markAllAsRead}
+                    onClick={clearNotifications}
                     className="text-xs text-blue-600 hover:text-blue-800 font-medium"
                   >
-                    Marcar todas como leídas
+                    Limpiar todas
                   </button>
                 )}
                 <button
@@ -171,51 +124,43 @@ const NotificationCenter = () => {
                 </div>
               ) : (
                 <div className="p-2">
-                  {notifications.map((notification) => {
-                    const styles = getTypeStyles(notification.type);
-                    const Icon = notification.icon;
+                  {notifications.map((notification, index) => {
+                    const config = getNotificationConfig(notification.type);
+                    const Icon = config.icon;
+                    const isUnread = notification.unread !== false;
 
                     return (
                       <div
-                        key={notification.id}
+                        key={`${notification.timestamp}-${index}`}
                         className={`relative p-3 rounded-lg mb-2 cursor-pointer transition-all duration-200 hover:shadow-sm ${
-                          notification.unread
-                            ? `${styles.bg} ${styles.border} border-l-4`
+                          isUnread
+                            ? `${config.bg} ${config.border} border-l-4`
                             : 'bg-gray-50 border border-gray-100'
                         }`}
-                        onClick={() => markAsRead(notification.id)}
+                        onClick={() => markAsRead(index)}
                       >
                         <div className="flex items-start space-x-3">
-                          <div className={`p-2 rounded-full ${styles.bg}`}>
-                            <Icon className={`w-4 h-4 ${styles.iconColor}`} />
+                          <div className={`p-2 rounded-full ${config.bg}`}>
+                            <Icon className={`w-4 h-4 ${config.iconColor}`} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
                               <p className={`text-sm font-medium ${
-                                notification.unread ? 'text-gray-900' : 'text-gray-700'
+                                isUnread ? 'text-gray-900' : 'text-gray-700'
                               }`}>
                                 {notification.title}
                               </p>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteNotification(notification.id);
-                                }}
-                                className="p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
                             </div>
                             <p className={`text-xs mt-1 ${
-                              notification.unread ? 'text-gray-700' : 'text-gray-500'
+                              isUnread ? 'text-gray-700' : 'text-gray-500'
                             }`}>
                               {notification.message}
                             </p>
                             <div className="flex items-center justify-between mt-2">
                               <span className="text-xs text-gray-400">
-                                {notification.time}
+                                {formatTime(notification.timestamp)}
                               </span>
-                              {notification.unread && (
+                              {isUnread && (
                                 <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                               )}
                             </div>
@@ -229,11 +174,13 @@ const NotificationCenter = () => {
             </div>
 
             {/* Footer */}
-            <div className="p-3 border-t border-gray-200">
-              <button className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium py-2">
-                Ver todas las notificaciones
-              </button>
-            </div>
+            {notifications.length > 0 && (
+              <div className="p-3 border-t border-gray-200">
+                <p className="w-full text-center text-xs text-gray-400 py-1">
+                  Notificaciones en tiempo real via WebSocket
+                </p>
+              </div>
+            )}
           </div>
         </>
       )}

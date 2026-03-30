@@ -1,8 +1,8 @@
-// API Configuration for Stock Logistic Frontend
+// API Configuration for AXEL Frontend
 // Uses environment variables in production, falls back to localhost for development
-// REACT_APP_API_URL should be the base URL WITHOUT /api (e.g., https://stock-logistic-backend.onrender.com)
+// REACT_APP_API_URL should be the base URL WITHOUT /api (e.g., https://axel-backend.onrender.com)
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const BASE_URL = process.env.REACT_APP_API_URL ?? '';
 // Remove trailing /api if present to avoid duplication
 const API_BASE_URL = BASE_URL.replace(/\/api\/?$/, '');
 

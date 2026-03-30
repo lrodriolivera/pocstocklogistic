@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Información de la Empresa */}
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Stock Logistic</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">AXEL</h3>
             <p className="text-gray-600 mb-4 max-w-md">
               Sistema de Cotizaciones Inteligente powered by LUC1-COMEX AI.
               Especializado en transporte terrestre por Europa con la más alta
@@ -117,7 +117,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-gray-200 flex items-center justify-between">
           <p className="text-sm text-gray-500">
-            © 2025 Stock Logistic. Todos los derechos reservados.
+            © 2025 AXEL. Todos los derechos reservados.
           </p>
           <div className="flex items-center space-x-4 text-sm text-gray-500">
             <a href="#" className="hover:text-blue-600 transition-colors">

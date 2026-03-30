@@ -34,9 +34,9 @@ describe('App Component', () => {
     fetch.mockClear();
   });
 
-  test('renders Stock Logistic header', () => {
+  test('renders AXEL header', () => {
     render(<App />);
-    expect(screen.getByText('Stock Logistic')).toBeInTheDocument();
+    expect(screen.getByText('AXEL')).toBeInTheDocument();
     expect(screen.getByText('Sistema de Cotizaciones Inteligente')).toBeInTheDocument();
   });
 
@@ -86,7 +86,7 @@ describe('App Component', () => {
 
   test('displays footer information', () => {
     render(<App />);
-    expect(screen.getByText('© 2025 Stock Logistic. Todos los derechos reservados.')).toBeInTheDocument();
+    expect(screen.getByText('© 2025 AXEL. Todos los derechos reservados.')).toBeInTheDocument();
     expect(screen.getByText('Desarrollado con')).toBeInTheDocument();
   });
 });

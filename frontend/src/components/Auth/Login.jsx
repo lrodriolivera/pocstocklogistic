@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from '../UI/LoadingSpinner';
 
@@ -156,6 +157,15 @@ const Login = () => {
                 </>
               )}
             </button>
+          </div>
+
+          <div className="flex items-center justify-between text-sm">
+            <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+              Olvidaste tu contrasena?
+            </Link>
+            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
+              No tienes cuenta? Registrate
+            </Link>
           </div>
         </form>
       </div>

@@ -255,8 +255,8 @@ const QuoteHistory = () => {
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Cotizaciones</p>
@@ -266,7 +266,7 @@ const QuoteHistory = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Activas</p>
@@ -276,7 +276,7 @@ const QuoteHistory = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Aceptadas</p>
@@ -286,7 +286,7 @@ const QuoteHistory = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Rechazadas</p>
@@ -296,7 +296,7 @@ const QuoteHistory = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">En Negociación</p>
@@ -306,7 +306,7 @@ const QuoteHistory = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Ingresos Totales</p>
@@ -319,43 +319,47 @@ const QuoteHistory = () => {
 
       {/* Filters and Actions */}
       <div className="bg-white p-4 rounded-lg shadow">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Filter className="h-5 w-5 text-gray-500" />
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2"
-            >
-              <option value="all">Todas</option>
-              <option value="active">Activas</option>
-              <option value="accepted">Aceptadas</option>
-              <option value="rejected">Rechazadas</option>
-              <option value="negotiating">En Negociación</option>
-              <option value="expired">Vencidas</option>
-              <option value="draft">Borradores</option>
-            </select>
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-3">
+              <Filter className="h-5 w-5 text-gray-500 flex-shrink-0" />
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-2 w-full sm:w-auto text-sm"
+              >
+                <option value="all">Todas</option>
+                <option value="active">Activas</option>
+                <option value="accepted">Aceptadas</option>
+                <option value="rejected">Rechazadas</option>
+                <option value="negotiating">En Negociacion</option>
+                <option value="expired">Vencidas</option>
+                <option value="draft">Borradores</option>
+              </select>
+            </div>
 
-            <input
-              type="date"
-              value={dateRange.start}
-              onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-              className="border border-gray-300 rounded-md px-3 py-2"
-              placeholder="Fecha inicio"
-            />
-
-            <input
-              type="date"
-              value={dateRange.end}
-              onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-              className="border border-gray-300 rounded-md px-3 py-2"
-              placeholder="Fecha fin"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={dateRange.start}
+                onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm flex-1 min-w-0"
+                placeholder="Fecha inicio"
+              />
+              <span className="text-gray-400 text-sm">-</span>
+              <input
+                type="date"
+                value={dateRange.end}
+                onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm flex-1 min-w-0"
+                placeholder="Fecha fin"
+              />
+            </div>
           </div>
 
           <button
             onClick={exportToCSV}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+            className="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm"
           >
             <Download className="h-4 w-4" />
             Exportar CSV

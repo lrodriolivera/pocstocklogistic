@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, Send, Bot, User, Minimize2, Maximize2, X, Loader } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import VoiceInput from './VoiceInput';
@@ -233,7 +234,7 @@ const ChatInterface = ({ isOpen, onToggle, className = '' }) => {
                 <div className="flex-1">
                   <div
                     className="text-sm"
-                    dangerouslySetInnerHTML={{ __html: formatMessage(message.text) }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatMessage(message.text)) }}
                   />
                   <div className="text-xs opacity-70 mt-1">
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
