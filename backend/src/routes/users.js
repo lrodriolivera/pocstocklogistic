@@ -21,7 +21,8 @@ router.use(authenticateToken);
 router.get('/', async (req, res) => {
   try {
     const User = require('../models/User');
-    let query = { isActive: true };
+    // Alta gerencia can see all users including inactive
+    let query = req.user.role === 'alta_gerencia' ? {} : { isActive: true };
 
     // Role-based filtering
     if (req.user.role === 'supervisor') {
@@ -119,21 +120,43 @@ router.put('/:userId', requireSupervisorAccess, async (req, res) => {
     const { userId } = req.params;
     const updates = req.body;
 
-    // Validate allowed updates
+    // Base allowed updates for supervisors
     const allowedUpdates = ['firstName', 'lastName', 'phone', 'department', 'isActive'];
-    const updateKeys = Object.keys(updates);
-    const isValidOperation = updateKeys.every(update => allowedUpdates.includes(update));
 
-    if (!isValidOperation) {
+    // Only alta_gerencia can change roles
+    if (req.user.role === 'alta_gerencia') {
+      allowedUpdates.push('role', 'email');
+    }
+
+    // Filter to only allowed fields
+    const filteredUpdates = {};
+    Object.keys(updates).forEach(key => {
+      if (allowedUpdates.includes(key)) {
+        filteredUpdates[key] = updates[key];
+      }
+    });
+
+    if (Object.keys(filteredUpdates).length === 0) {
       return res.status(400).json({
         success: false,
-        error: 'Campos de actualización no válidos'
+        error: 'No hay campos validos para actualizar'
       });
+    }
+
+    // Validate role if being changed
+    if (filteredUpdates.role) {
+      const validRoles = ['agente_comercial', 'supervisor', 'alta_gerencia'];
+      if (!validRoles.includes(filteredUpdates.role)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Rol invalido'
+        });
+      }
     }
 
     const user = await User.findByIdAndUpdate(
       userId,
-      updates,
+      filteredUpdates,
       { new: true, runValidators: true }
     ).select('-password -passwordResetToken -emailVerificationToken');
 
@@ -154,6 +177,78 @@ router.put('/:userId', requireSupervisorAccess, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Error actualizando usuario',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Get dashboard statistics for supervisors and alta gerencia
+ * NOTE: Must be defined BEFORE /:userId/statistics to avoid route conflict
+ */
+router.get('/dashboard/statistics', requireMinimumRole('supervisor'), async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const Quote = require('../models/Quote');
+
+    let userFilter = {};
+    let quoteFilter = {};
+
+    // Apply role-based filtering
+    if (req.user.role === 'supervisor') {
+      const supervisor = await User.findById(req.user._id);
+      const managedUserIds = [...supervisor.managedAgents, req.user._id];
+      userFilter._id = { $in: managedUserIds };
+      quoteFilter['tracking.assignedTo'] = { $in: managedUserIds.map(id => id.toString()) };
+    }
+    // Alta gerencia sees all data
+
+    const [
+      totalUsers,
+      usersByRole,
+      totalQuotes,
+      quotesByStatus,
+      recentActivity
+    ] = await Promise.all([
+      User.countDocuments({ ...userFilter, isActive: true }),
+      User.aggregate([
+        { $match: { ...userFilter, isActive: true } },
+        { $group: { _id: '$role', count: { $sum: 1 } } }
+      ]),
+      Quote.countDocuments(quoteFilter),
+      Quote.aggregate([
+        { $match: quoteFilter },
+        { $group: { _id: '$status', count: { $sum: 1 }, totalValue: { $sum: '$costBreakdown.total' } } }
+      ]),
+      Quote.find(quoteFilter)
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .select('quoteId status costBreakdown.total route client tracking.assignedTo createdAt')
+        .populate('tracking.assignedTo', 'firstName lastName')
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        overview: {
+          totalUsers,
+          totalQuotes,
+          userRole: req.user.role
+        },
+        users: {
+          byRole: usersByRole
+        },
+        quotes: {
+          byStatus: quotesByStatus
+        },
+        recentActivity
+      }
+    });
+  } catch (error) {
+    console.error('Error obteniendo estadísticas del dashboard:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error obteniendo estadísticas del dashboard',
       message: error.message
     });
   }
@@ -299,77 +394,6 @@ router.post('/quotes/:quoteId/reassign', requireMinimumRole('supervisor'), async
     res.status(500).json({
       success: false,
       error: 'Error reasignando cotización',
-      message: error.message
-    });
-  }
-});
-
-/**
- * Get dashboard statistics for supervisors and alta gerencia
- */
-router.get('/dashboard/statistics', requireMinimumRole('supervisor'), async (req, res) => {
-  try {
-    const User = require('../models/User');
-    const Quote = require('../models/Quote');
-
-    let userFilter = {};
-    let quoteFilter = {};
-
-    // Apply role-based filtering
-    if (req.user.role === 'supervisor') {
-      const supervisor = await User.findById(req.user._id);
-      const managedUserIds = [...supervisor.managedAgents, req.user._id];
-      userFilter._id = { $in: managedUserIds };
-      quoteFilter['tracking.assignedTo'] = { $in: managedUserIds.map(id => id.toString()) };
-    }
-    // Alta gerencia sees all data
-
-    const [
-      totalUsers,
-      usersByRole,
-      totalQuotes,
-      quotesByStatus,
-      recentActivity
-    ] = await Promise.all([
-      User.countDocuments({ ...userFilter, isActive: true }),
-      User.aggregate([
-        { $match: { ...userFilter, isActive: true } },
-        { $group: { _id: '$role', count: { $sum: 1 } } }
-      ]),
-      Quote.countDocuments(quoteFilter),
-      Quote.aggregate([
-        { $match: quoteFilter },
-        { $group: { _id: '$status', count: { $sum: 1 }, totalValue: { $sum: '$costBreakdown.total' } } }
-      ]),
-      Quote.find(quoteFilter)
-        .sort({ createdAt: -1 })
-        .limit(10)
-        .select('quoteId status costBreakdown.total route client tracking.assignedTo createdAt')
-        .populate('tracking.assignedTo', 'firstName lastName')
-    ]);
-
-    res.json({
-      success: true,
-      data: {
-        overview: {
-          totalUsers,
-          totalQuotes,
-          userRole: req.user.role
-        },
-        users: {
-          byRole: usersByRole
-        },
-        quotes: {
-          byStatus: quotesByStatus
-        },
-        recentActivity
-      }
-    });
-  } catch (error) {
-    console.error('Error obteniendo estadísticas del dashboard:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error obteniendo estadísticas del dashboard',
       message: error.message
     });
   }

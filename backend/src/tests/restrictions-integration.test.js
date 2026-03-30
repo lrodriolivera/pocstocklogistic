@@ -8,7 +8,7 @@
  * ✅ Alertas inteligentes por país
  * ✅ Integración con cotizaciones
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  */
 
 const EuropeanRestrictionsService = require('../services/europeanRestrictionsService');

@@ -49,64 +49,7 @@ router.post('/quote', async (req, res) => {
     console.error('Error generating PDF:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to generate PDF',
-      details: error.message
-    });
-  }
-});
-
-// GET /api/pdf/test - Test endpoint for PDF generation
-router.get('/test', async (req, res) => {
-  try {
-    // Test data
-    const testQuoteData = {
-      quoteId: 'TEST-001',
-      weight: 1500,
-      route: {
-        origin: 'Madrid, España',
-        destination: 'París, Francia',
-        distance: 1276,
-        duration: 13
-      },
-      alternatives: [{
-        type: 'standard',
-        price: 3450.00,
-        transitTime: '2-3',
-        description: 'Servicio estándar con entrega programada',
-        features: [
-          'Seguro incluido hasta €10,000',
-          'Seguimiento GPS',
-          'Soporte 24/7',
-          'Documentación completa'
-        ]
-      }],
-      costBreakdown: {
-        distanceRate: 2500.00,
-        fuelCost: 450.00,
-        tollCost: 280.00,
-        driverCost: 150.00,
-        vehicleCost: 70.00,
-        tollBreakdown: [
-          { country: 'España', cost: 120.00 },
-          { country: 'Francia', cost: 160.00 }
-        ]
-      }
-    };
-
-    const pdfBuffer = await PDFService.generateQuotePDF(testQuoteData, testQuoteData.alternatives[0]);
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename="test-cotizacion.pdf"');
-    res.setHeader('Content-Length', pdfBuffer.length);
-
-    res.send(pdfBuffer);
-
-  } catch (error) {
-    console.error('Error in PDF test:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to generate test PDF',
-      details: error.message
+      error: 'Failed to generate PDF'
     });
   }
 });

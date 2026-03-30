@@ -8,7 +8,7 @@
  * - InstaFreight (Startup)
  * - Cargopedia (Alternativa)
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  * @version 2.0.0 - Soporte para APIs reales + Fallback simulado
  */
 

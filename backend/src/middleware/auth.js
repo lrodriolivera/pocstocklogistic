@@ -316,13 +316,60 @@ const rateLimitByRole = () => {
   };
 };
 
+/**
+ * Check resource ownership or hierarchy access
+ * @param {Function} getResourceOwnerId - async function(req) that returns the owner's ID
+ */
+const requireResourceOwnership = (getResourceOwnerId) => async (req, res, next) => {
+  try {
+    const ownerId = await getResourceOwnerId(req);
+    if (!ownerId) return next(); // No owner restriction
+
+    if (req.user.role === 'alta_gerencia') return next();
+
+    if (req.user._id.toString() === ownerId.toString()) return next();
+
+    if (req.user.role === 'supervisor') {
+      const supervisor = await User.findById(req.user._id);
+      if (supervisor.managedAgents.map(id => id.toString()).includes(ownerId.toString())) {
+        return next();
+      }
+    }
+
+    return res.status(403).json({ success: false, error: 'No tienes permisos' });
+  } catch (error) {
+    console.error('Resource ownership check error:', error);
+    return res.status(500).json({ success: false, error: 'Error de permisos' });
+  }
+};
+
+/**
+ * Build query filter based on user role
+ * @param {Object} user - The authenticated user
+ * @param {string} fieldName - The field name to filter on (default: 'createdBy')
+ * @returns {Object} MongoDB query filter
+ */
+const buildRoleFilter = async (user, fieldName = 'createdBy') => {
+  if (user.role === 'alta_gerencia') return {};
+
+  if (user.role === 'supervisor') {
+    const supervisor = await User.findById(user._id);
+    const ids = [...supervisor.managedAgents, user._id];
+    return { [fieldName]: { $in: ids } };
+  }
+
+  return { [fieldName]: user._id };
+};
+
 module.exports = {
   generateToken,
   authenticateToken,
   requireRole,
   requireMinimumRole,
   requireResourceAccess,
+  requireResourceOwnership,
   requireSupervisorAccess,
   optionalAuth,
-  rateLimitByRole
+  rateLimitByRole,
+  buildRoleFilter
 };

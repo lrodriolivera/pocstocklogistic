@@ -4,7 +4,7 @@
  * Proporciona información básica de rutas para el análisis LUC1
  * En producción se integraría con Google Maps API o OpenRoute
  * 
- * @author Stock Logistic Team
+ * @author AXEL Team
  * @version 1.0.0
  */
 

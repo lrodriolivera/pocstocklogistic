@@ -4,7 +4,7 @@
  * Integración con la API de Timocom (Premium European freight exchange)
  * Documentación: https://developer.timocom.com/
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  * @version 1.0.0
  */
 
@@ -137,7 +137,7 @@ class TimocomAdapter extends BaseTransportistAdapter {
   /**
    * 🗺️ Mapear tipo de carga al formato TIMOCOM
    */
-  mapCargoType(stockLogisticType) {
+  mapCargoType(axelType) {
     const mapping = {
       'forestales': 'WOOD_PRODUCTS',
       'forest_products': 'WOOD_PRODUCTS',
@@ -148,7 +148,7 @@ class TimocomAdapter extends BaseTransportistAdapter {
       'especial': 'SPECIAL_CARGO'
     };
 
-    return mapping[stockLogisticType] || 'GENERAL_CARGO';
+    return mapping[axelType] || 'GENERAL_CARGO';
   }
 
   /**

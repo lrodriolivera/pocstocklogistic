@@ -3,7 +3,7 @@
  *
  * Exporta todos los adaptadores de APIs de transportistas
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  * @version 1.0.0
  */
 

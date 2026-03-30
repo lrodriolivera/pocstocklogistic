@@ -1,6 +1,7 @@
 const MasterQuoteService = require('../services/masterQuoteService');
 const OpenRouteService = require('../services/openRouteService');
 const { validationResult } = require('express-validator');
+const { getEmailService } = require('../services/emailService');
 
 class QuoteController {
   constructor() {
@@ -63,6 +64,25 @@ class QuoteController {
         assignedTo: req.user ? req.user.fullName || `${req.user.firstName} ${req.user.lastName}` : 'System',
         processingTime: Date.now() - startTime
       });
+
+      // Send email notification to the agent (non-blocking)
+      if (req.user?.email) {
+        getEmailService().sendQuoteNotification(req.user.email, quote).catch(err => {
+          console.error('Email notification error (quote generated):', err.message);
+        });
+      }
+
+      // Emit real-time notification for quote generated
+      const io = req.app.get('io');
+      if (io && req.user) {
+        io.to(`user:${req.user._id.toString()}`).emit('notification', {
+          type: 'quote_generated',
+          title: 'Cotizacion generada',
+          message: `Cotizacion ${quote.quoteId} generada - ${quote.costBreakdown?.total ? quote.costBreakdown.total.toFixed(2) + ' EUR' : ''}`,
+          quoteId: quote.quoteId,
+          timestamp: new Date()
+        });
+      }
 
       res.json({
         success: true,
@@ -277,6 +297,128 @@ class QuoteController {
   }
 
   /**
+   * 📊 Obtener datos para graficos del dashboard
+   */
+  async getChartStatistics(req, res) {
+    try {
+      const Quote = require('../models/Quote');
+      const User = require('../models/User');
+
+      // Last 6 months date range
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      sixMonthsAgo.setDate(1);
+      sixMonthsAgo.setHours(0, 0, 0, 0);
+
+      // Monthly quotes aggregation
+      const monthlyQuotes = await Quote.aggregate([
+        { $match: { createdAt: { $gte: sixMonthsAgo } } },
+        {
+          $group: {
+            _id: {
+              year: { $year: '$createdAt' },
+              month: { $month: '$createdAt' }
+            },
+            count: { $sum: 1 },
+            revenue: { $sum: { $ifNull: ['$costBreakdown.total', 0] } }
+          }
+        },
+        { $sort: { '_id.year': 1, '_id.month': 1 } }
+      ]);
+
+      // Format monthly data
+      const formattedMonthly = monthlyQuotes.map(item => ({
+        month: `${item._id.year}-${String(item._id.month).padStart(2, '0')}`,
+        count: item.count,
+        revenue: Math.round(item.revenue * 100) / 100
+      }));
+
+      // By status
+      const byStatus = await Quote.aggregate([
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 }
+          }
+        }
+      ]);
+
+      const formattedByStatus = byStatus.map(item => ({
+        status: item._id || 'unknown',
+        count: item.count
+      }));
+
+      // Recent 10 quotes
+      const recentQuotes = await Quote.find({})
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .select('quoteId status client.company costBreakdown.total route.origin route.destination createdAt tracking.assignedTo')
+        .lean();
+
+      // Top agents by revenue (from accepted quotes)
+      const topAgents = await Quote.aggregate([
+        { $match: { status: 'accepted', 'tracking.assignedTo': { $exists: true, $ne: null } } },
+        {
+          $group: {
+            _id: '$tracking.assignedTo',
+            revenue: { $sum: { $ifNull: ['$costBreakdown.total', 0] } },
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { revenue: -1 } },
+        { $limit: 5 }
+      ]);
+
+      // Enrich top agents with user names
+      const enrichedAgents = [];
+      for (const agent of topAgents) {
+        try {
+          const user = await User.findById(agent._id).select('firstName lastName').lean();
+          enrichedAgents.push({
+            userId: agent._id,
+            name: user ? `${user.firstName} ${user.lastName}` : 'Desconocido',
+            revenue: Math.round(agent.revenue * 100) / 100,
+            count: agent.count
+          });
+        } catch {
+          enrichedAgents.push({
+            userId: agent._id,
+            name: 'Desconocido',
+            revenue: Math.round(agent.revenue * 100) / 100,
+            count: agent.count
+          });
+        }
+      }
+
+      res.json({
+        success: true,
+        data: {
+          monthlyQuotes: formattedMonthly,
+          byStatus: formattedByStatus,
+          recentQuotes: recentQuotes.map(q => ({
+            quoteId: q.quoteId,
+            status: q.status,
+            company: q.client?.company || 'Sin cliente',
+            total: q.costBreakdown?.total || 0,
+            origin: q.route?.origin || '',
+            destination: q.route?.destination || '',
+            createdAt: q.createdAt,
+            assignedTo: q.tracking?.assignedTo || null
+          })),
+          topAgents: enrichedAgents
+        }
+      });
+    } catch (error) {
+      console.error('Error obteniendo datos de graficos:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Error obteniendo datos de graficos',
+        message: error.message
+      });
+    }
+  }
+
+  /**
    * 📊 Update quote status and timeline
    */
   async updateQuoteStatus(req, res) {
@@ -435,7 +577,7 @@ Para cualquier consulta o modificación, no dude en contactarnos.
 
 Saludos cordiales,
 ${commercialName || 'Equipo Comercial'}
-Stock Logistic Solutions
+AXEL Solutions
 `;
 
       // Record communication
@@ -647,6 +789,30 @@ Stock Logistic Solutions
 
       console.log('Quote accepted via portal:', { quoteId: quote.quoteId, token: token });
 
+      // Notify assigned agent via email (non-blocking)
+      if (quote.tracking?.assignedTo) {
+        const User = require('../models/User');
+        User.findById(quote.tracking.assignedTo).then(agent => {
+          if (agent?.email) {
+            getEmailService().sendQuoteAccepted(agent.email, quote).catch(err => {
+              console.error('Email notification error (quote accepted):', err.message);
+            });
+          }
+        }).catch(() => {});
+      }
+
+      // Emit real-time notification to the assigned agent
+      const io = req.app.get('io');
+      if (io && quote.tracking?.assignedTo) {
+        io.to(`user:${quote.tracking.assignedTo.toString()}`).emit('notification', {
+          type: 'quote_accepted',
+          title: 'Cotizacion aceptada',
+          message: `La cotizacion ${quote.quoteId} ha sido aceptada por el cliente`,
+          quoteId: quote._id,
+          timestamp: new Date()
+        });
+      }
+
       res.json({
         success: true,
         message: 'Cotización aceptada exitosamente',
@@ -715,6 +881,34 @@ Stock Logistic Solutions
       );
 
       console.log('Quote rejected via portal:', { quoteId: quote.quoteId, token: token });
+
+      // Notify assigned agent via email (non-blocking)
+      if (quote.tracking?.assignedTo) {
+        const User = require('../models/User');
+        User.findById(quote.tracking.assignedTo).then(agent => {
+          if (agent?.email) {
+            getEmailService().sendQuoteRejected(agent.email, {
+              ...quote.toObject(),
+              reason: req.body?.reason || null
+            }).catch(err => {
+              console.error('Email notification error (quote rejected):', err.message);
+            });
+          }
+        }).catch(() => {});
+      }
+
+      // Emit real-time notification to the assigned agent
+      const io = req.app.get('io');
+      if (io && quote.tracking?.assignedTo) {
+        io.to(`user:${quote.tracking.assignedTo.toString()}`).emit('notification', {
+          type: 'quote_rejected',
+          title: 'Cotizacion rechazada',
+          message: `La cotizacion ${quote.quoteId} ha sido rechazada por el cliente`,
+          quoteId: quote._id,
+          reason: req.body?.reason || null,
+          timestamp: new Date()
+        });
+      }
 
       res.json({
         success: true,

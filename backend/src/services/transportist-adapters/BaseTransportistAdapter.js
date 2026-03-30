@@ -3,7 +3,7 @@
  *
  * Define la interfaz común para todos los adaptadores de transportistas
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  * @version 1.0.0
  */
 
@@ -99,7 +99,7 @@ class BaseTransportistAdapter {
     const headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      'User-Agent': 'StockLogistic/1.0'
+      'User-Agent': 'Axel/1.0'
     };
 
     if (this.config.apiKey) {

@@ -4,7 +4,7 @@ module.exports = {
     env: process.env.NODE_ENV || 'development'
   },
   database: {
-    mongodb: process.env.MONGODB_URI || 'mongodb://localhost:27017/stock-logistic',
+    mongodb: process.env.MONGODB_URI || 'mongodb://localhost:27017/axel',
     redis: process.env.REDIS_URL || 'redis://localhost:6379'
   },
   ai: {

@@ -2,11 +2,14 @@
  * 🚛 Freight Exchange API Routes
  *
  * Endpoints para interactuar con bolsas de carga:
- * - Timocom
- * - Wtransnet
+ * - Timocom (Europa)
+ * - Wtransnet (Sur de Europa)
+ * - Teleroute (Alpega Group - Europa Occidental)
+ * - Trans.eu (Europa Central y del Este)
+ * - Cargopedia (Europa del Este y del Sur)
  *
- * @author Stock Logistic Team
- * @version 1.0.0
+ * @author AXEL Team
+ * @version 2.0.0
  */
 
 const express = require('express');
@@ -22,7 +25,7 @@ const freightExchange = new FreightExchangeService();
  * Buscar ofertas de carga en todas las plataformas
  *
  * Query params:
- * - platforms: timocom,wtransnet (o 'all')
+ * - platforms: timocom,wtransnet,teleroute,transeu,cargopedia (o 'all')
  * - originCountry: ES, FR, DE, etc.
  * - originCity: Madrid, París, etc.
  * - destinationCountry: ES, FR, DE, etc.
@@ -33,15 +36,29 @@ const freightExchange = new FreightExchangeService();
  */
 router.get('/search', async (req, res) => {
   try {
+    // Validate and clamp radiusKm
+    let radiusKm = parseInt(req.query.radiusKm) || 50;
+    radiusKm = Math.max(1, Math.min(500, radiusKm));
+
+    // Validate dates
+    const fromDate = req.query.fromDate ? new Date(req.query.fromDate) : new Date();
+    if (req.query.fromDate && isNaN(fromDate.getTime())) {
+      return res.status(400).json({ success: false, error: 'fromDate invalido' });
+    }
+    const toDate = req.query.toDate ? new Date(req.query.toDate) : null;
+    if (req.query.toDate && isNaN(toDate.getTime())) {
+      return res.status(400).json({ success: false, error: 'toDate invalido' });
+    }
+
     const params = {
       platforms: req.query.platforms ? req.query.platforms.split(',') : ['all'],
       originCountry: req.query.originCountry,
       originCity: req.query.originCity,
       destinationCountry: req.query.destinationCountry,
       destinationCity: req.query.destinationCity,
-      radiusKm: parseInt(req.query.radiusKm) || 50,
-      fromDate: req.query.fromDate ? new Date(req.query.fromDate) : new Date(),
-      toDate: req.query.toDate ? new Date(req.query.toDate) : null
+      radiusKm,
+      fromDate,
+      toDate
     };
 
     console.log('📡 API: Búsqueda de cargas', params);
@@ -57,7 +74,7 @@ router.get('/search', async (req, res) => {
     console.error('❌ Error en búsqueda de cargas:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: 'Error en busqueda de cargas'
     });
   }
 });
@@ -91,7 +108,7 @@ router.get('/vehicles', async (req, res) => {
     console.error('❌ Error en búsqueda de vehículos:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: 'Error en busqueda de vehiculos'
     });
   }
 });
@@ -146,7 +163,7 @@ router.post('/publish', async (req, res) => {
     console.error('❌ Error publicando oferta:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: 'Error publicando oferta'
     });
   }
 });
@@ -173,7 +190,7 @@ router.get('/stats', async (req, res) => {
     console.error('❌ Error obteniendo estadísticas:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: 'Error obteniendo estadisticas'
     });
   }
 });
@@ -194,7 +211,7 @@ router.get('/platforms', (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: 'Error obteniendo informacion de plataformas'
     });
   }
 });
@@ -215,7 +232,7 @@ router.get('/health', async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: 'Error en health check'
     });
   }
 });

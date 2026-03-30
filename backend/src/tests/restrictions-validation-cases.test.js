@@ -7,7 +7,7 @@
  * ✅ Mercancía peligrosa Mont Blanc: Prohibida
  * ✅ Camión >40t Alemania: Restricción peso
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  */
 
 const EuropeanRestrictionsService = require('../services/europeanRestrictionsService');

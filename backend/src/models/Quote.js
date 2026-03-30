@@ -6,6 +6,13 @@
 const mongoose = require('mongoose');
 
 const QuoteSchema = new mongoose.Schema({
+  // Multi-tenant support
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tenant',
+    index: true
+  },
+
   // Quote identification
   quoteId: {
     type: String,

@@ -1,13 +1,13 @@
 /**
  * 🧪 Test de Integración TollGuru API
- * Stock Logistic POC - Casos de Prueba Obligatorios
+ * AXEL - Casos de Prueba Obligatorios
  *
  * CASOS REQUERIDOS:
  * 1. Madrid → París (20t, 3 ejes, Euro6)
  * 2. Barcelona → Milán (25t, 4 ejes)
  * 3. Valencia → Roma (18t, 3 ejes)
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  */
 
 const TollGuruService = require('../services/tollGuruService');

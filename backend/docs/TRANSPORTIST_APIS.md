@@ -2,7 +2,7 @@
 
 ## Estado: POC - Preparado para Integración
 
-Este documento detalla las APIs de transportistas europeos disponibles para integración en Stock Logistic.
+Este documento detalla las APIs de transportistas europeos disponibles para integración en AXEL.
 
 ---
 

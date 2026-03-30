@@ -1,46 +1,55 @@
 /**
  * 🌐 Freight Exchange Aggregator Service
  *
- * Servicio unificado que agrega ofertas de múltiples bolsas de carga:
+ * Servicio unificado que agrega ofertas de multiples bolsas de carga:
  * - Timocom (Europa)
  * - Wtransnet (Sur de Europa)
+ * - Teleroute (Europa Occidental - Alpega Group)
+ * - Trans.eu (Europa Central y del Este)
+ * - Cargopedia (Europa del Este y del Sur)
  *
  * Permite buscar y comparar ofertas de diferentes plataformas
- * en una única interfaz.
+ * en una unica interfaz.
  *
- * @author Stock Logistic Team
- * @version 1.0.0
+ * @author AXEL Team
+ * @version 3.0.0
  */
 
 const TimocomService = require('./timocomService');
 const WtransnetService = require('./wtransnetService');
+const TelerouteService = require('./telerouteService');
+const TranseuService = require('./transeuService');
+const CargopediaService = require('./cargopediaService');
 
 class FreightExchangeService {
   constructor() {
     this.timocom = new TimocomService();
     this.wtransnet = new WtransnetService();
+    this.teleroute = new TelerouteService();
+    this.transeu = new TranseuService();
+    this.cargopedia = new CargopediaService();
 
     // Cache agregado
     this.cache = {
       aggregatedSearches: new Map()
     };
 
-    this.cacheExpiry = 3 * 60 * 1000; // 3 minutos para búsquedas agregadas
+    this.cacheExpiry = 3 * 60 * 1000; // 3 minutos para busquedas agregadas
 
     console.log('🌐 FreightExchangeService inicializado');
-    console.log('   Plataformas activas: Timocom, Wtransnet');
+    console.log('   Plataformas activas: Timocom, Wtransnet, Teleroute, Trans.eu, Cargopedia');
   }
 
   /**
-   * 🔍 Búsqueda agregada en todas las bolsas de carga
+   * 🔍 Busqueda agregada en todas las bolsas de carga
    *
-   * @param {Object} params - Parámetros de búsqueda
-   * @param {string[]} params.platforms - Plataformas a consultar ['timocom', 'wtransnet', 'all']
-   * @param {string} params.originCountry - País de origen
+   * @param {Object} params - Parametros de busqueda
+   * @param {string[]} params.platforms - Plataformas a consultar ['timocom', 'wtransnet', 'teleroute', 'transeu', 'cargopedia', 'all']
+   * @param {string} params.originCountry - Pais de origen
    * @param {string} params.originCity - Ciudad de origen
-   * @param {string} params.destinationCountry - País de destino
+   * @param {string} params.destinationCountry - Pais de destino
    * @param {string} params.destinationCity - Ciudad de destino
-   * @param {number} params.radiusKm - Radio de búsqueda
+   * @param {number} params.radiusKm - Radio de busqueda
    * @param {Date} params.fromDate - Fecha desde
    * @param {Date} params.toDate - Fecha hasta
    */
@@ -48,7 +57,7 @@ class FreightExchangeService {
     const platforms = params.platforms || ['all'];
     const searchAll = platforms.includes('all');
 
-    console.log('🔍 Búsqueda agregada en bolsas de carga:', {
+    console.log('🔍 Busqueda agregada en bolsas de carga:', {
       platforms: searchAll ? 'todas' : platforms,
       origin: `${params.originCity || ''}, ${params.originCountry || ''}`,
       destination: `${params.destinationCity || ''}, ${params.destinationCountry || ''}`
@@ -57,6 +66,9 @@ class FreightExchangeService {
     const results = {
       timocom: [],
       wtransnet: [],
+      teleroute: [],
+      transeu: [],
+      cargopedia: [],
       aggregated: [],
       metadata: {
         searchParams: params,
@@ -65,66 +77,97 @@ class FreightExchangeService {
       }
     };
 
-    // Ejecutar búsquedas en paralelo
-    const promises = [];
+    // Construir array de promesas para busqueda en paralelo con Promise.allSettled
+    const platformSearches = [];
 
     if (searchAll || platforms.includes('timocom')) {
-      promises.push(
-        this.timocom.searchFreightOffers(params)
-          .then(offers => {
-            results.timocom = offers;
-            results.metadata.platforms.push('timocom');
-          })
-          .catch(err => {
-            console.error('Error en Timocom:', err.message);
-            results.timocom = [];
-          })
-      );
+      platformSearches.push({
+        name: 'timocom',
+        promise: this.timocom.searchFreightOffers(params)
+      });
     }
 
     if (searchAll || platforms.includes('wtransnet')) {
-      promises.push(
-        this.wtransnet.searchFreightOffers(params)
-          .then(offers => {
-            results.wtransnet = offers;
-            results.metadata.platforms.push('wtransnet');
-          })
-          .catch(err => {
-            console.error('Error en Wtransnet:', err.message);
-            results.wtransnet = [];
-          })
-      );
+      platformSearches.push({
+        name: 'wtransnet',
+        promise: this.wtransnet.searchFreightOffers(params)
+      });
     }
 
-    await Promise.all(promises);
+    if (searchAll || platforms.includes('teleroute')) {
+      platformSearches.push({
+        name: 'teleroute',
+        promise: this.teleroute.searchFreightOffers(params)
+      });
+    }
+
+    if (searchAll || platforms.includes('transeu')) {
+      platformSearches.push({
+        name: 'transeu',
+        promise: this.transeu.searchFreightOffers(params)
+      });
+    }
+
+    if (searchAll || platforms.includes('cargopedia')) {
+      platformSearches.push({
+        name: 'cargopedia',
+        promise: this.cargopedia.searchFreightOffers(params)
+      });
+    }
+
+    // Ejecutar todas las busquedas en paralelo - una falla no afecta las demas
+    const settled = await Promise.allSettled(
+      platformSearches.map(p => p.promise)
+    );
+
+    // Procesar resultados
+    settled.forEach((result, index) => {
+      const platformName = platformSearches[index].name;
+      if (result.status === 'fulfilled') {
+        results[platformName] = result.value || [];
+        results.metadata.platforms.push(platformName);
+      } else {
+        console.error(`Error en ${platformName}:`, result.reason?.message || result.reason);
+        results[platformName] = [];
+      }
+    });
 
     // Agregar y ordenar resultados
     results.aggregated = this.aggregateAndSort([
       ...results.timocom,
-      ...results.wtransnet
+      ...results.wtransnet,
+      ...results.teleroute,
+      ...results.transeu,
+      ...results.cargopedia
     ]);
 
     results.metadata.totalOffers = results.aggregated.length;
     results.metadata.byPlatform = {
       timocom: results.timocom.length,
-      wtransnet: results.wtransnet.length
+      wtransnet: results.wtransnet.length,
+      teleroute: results.teleroute.length,
+      transeu: results.transeu.length,
+      cargopedia: results.cargopedia.length
     };
 
     return results;
   }
 
   /**
-   * 🚚 Búsqueda agregada de vehículos disponibles
+   * 🚚 Busqueda agregada de vehiculos disponibles
    */
   async searchVehicles(params) {
     const platforms = params.platforms || ['all'];
     const searchAll = platforms.includes('all');
 
-    console.log('🚚 Búsqueda de vehículos:', params);
+    console.log('🚚 Busqueda de vehiculos:', params);
 
     const results = {
       timocom: [],
       wtransnet: [],
+      teleroute: [],
+      transeu: [],
+      cargopedia: [],
       aggregated: [],
       metadata: {
         searchParams: params,
@@ -132,34 +175,73 @@ class FreightExchangeService {
       }
     };
 
-    const promises = [];
+    const platformSearches = [];
 
     if (searchAll || platforms.includes('timocom')) {
-      promises.push(
-        this.timocom.searchVehicleOffers(params)
-          .then(offers => { results.timocom = offers; })
-          .catch(() => { results.timocom = []; })
-      );
+      platformSearches.push({
+        name: 'timocom',
+        promise: this.timocom.searchVehicleOffers(params)
+      });
     }
 
     if (searchAll || platforms.includes('wtransnet')) {
-      promises.push(
-        this.wtransnet.searchVehicleOffers(params)
-          .then(offers => { results.wtransnet = offers; })
-          .catch(() => { results.wtransnet = []; })
-      );
+      platformSearches.push({
+        name: 'wtransnet',
+        promise: this.wtransnet.searchVehicleOffers(params)
+      });
     }
 
-    await Promise.all(promises);
+    if (searchAll || platforms.includes('teleroute')) {
+      platformSearches.push({
+        name: 'teleroute',
+        promise: this.teleroute.searchVehicleOffers(params)
+      });
+    }
 
-    results.aggregated = [...results.timocom, ...results.wtransnet];
+    if (searchAll || platforms.includes('transeu')) {
+      platformSearches.push({
+        name: 'transeu',
+        promise: this.transeu.searchVehicleOffers(params)
+      });
+    }
+
+    if (searchAll || platforms.includes('cargopedia')) {
+      platformSearches.push({
+        name: 'cargopedia',
+        promise: this.cargopedia.searchVehicleOffers(params)
+      });
+    }
+
+    // Ejecutar todas las busquedas en paralelo
+    const settled = await Promise.allSettled(
+      platformSearches.map(p => p.promise)
+    );
+
+    // Procesar resultados
+    settled.forEach((result, index) => {
+      const platformName = platformSearches[index].name;
+      if (result.status === 'fulfilled') {
+        results[platformName] = result.value || [];
+      } else {
+        console.error(`Error vehiculos ${platformName}:`, result.reason?.message || result.reason);
+        results[platformName] = [];
+      }
+    });
+
+    results.aggregated = [
+      ...results.timocom,
+      ...results.wtransnet,
+      ...results.teleroute,
+      ...results.transeu,
+      ...results.cargopedia
+    ];
     results.metadata.totalVehicles = results.aggregated.length;
 
     return results;
   }
 
   /**
-   * 📤 Publicar oferta en una o más plataformas
+   * 📤 Publicar oferta en una o mas plataformas
    */
   async publishOffer(offer, platforms = ['timocom']) {
     console.log('📤 Publicando oferta:', { platforms, origin: offer.origin, destination: offer.destination });
@@ -181,6 +263,15 @@ class FreightExchangeService {
           case 'wtransnet':
             result = await this.wtransnet.publishFreightOffer(offer);
             break;
+          case 'teleroute':
+            result = await this.teleroute.publishFreightOffer(offer);
+            break;
+          case 'transeu':
+            result = await this.transeu.publishFreightOffer(offer);
+            break;
+          case 'cargopedia':
+            result = await this.cargopedia.publishFreightOffer(offer);
+            break;
           default:
             throw new Error(`Plataforma no soportada: ${platform}`);
         }
@@ -197,7 +288,7 @@ class FreightExchangeService {
   }
 
   /**
-   * 🔄 Agregar y ordenar ofertas de múltiples fuentes
+   * 🔄 Agregar y ordenar ofertas de multiples fuentes
    */
   aggregateAndSort(offers) {
     // Eliminar duplicados potenciales (mismo origen-destino-fecha)
@@ -230,7 +321,7 @@ class FreightExchangeService {
   }
 
   /**
-   * 📊 Obtener estadísticas del mercado
+   * 📊 Obtener estadisticas del mercado
    */
   async getMarketStats(params = {}) {
     const allOffers = await this.searchAllPlatforms({
@@ -242,7 +333,7 @@ class FreightExchangeService {
 
     if (offers.length === 0) {
       return {
-        message: 'No hay ofertas disponibles para los parámetros especificados',
+        message: 'No hay ofertas disponibles para los parametros especificados',
         params
       };
     }
@@ -270,7 +361,7 @@ class FreightExchangeService {
   }
 
   /**
-   * 📈 Obtener rutas más populares
+   * 📈 Obtener rutas mas populares
    */
   getTopRoutes(offers) {
     const routeCounts = {};
@@ -290,9 +381,12 @@ class FreightExchangeService {
    * 🏥 Health check de todas las plataformas
    */
   async healthCheck() {
-    const [timocomStatus, wtransnetStatus] = await Promise.all([
+    const [timocomStatus, wtransnetStatus, telerouteStatus, transeuStatus, cargopediaStatus] = await Promise.all([
       this.timocom.healthCheck(),
-      this.wtransnet.healthCheck()
+      this.wtransnet.healthCheck(),
+      this.teleroute.healthCheck(),
+      this.transeu.healthCheck(),
+      this.cargopedia.healthCheck()
     ]);
 
     return {
@@ -300,14 +394,17 @@ class FreightExchangeService {
       status: 'operational',
       platforms: {
         timocom: timocomStatus,
-        wtransnet: wtransnetStatus
+        wtransnet: wtransnetStatus,
+        teleroute: telerouteStatus,
+        transeu: transeuStatus,
+        cargopedia: cargopediaStatus
       },
       timestamp: new Date().toISOString()
     };
   }
 
   /**
-   * 📋 Obtener información de plataformas disponibles
+   * 📋 Obtener informacion de plataformas disponibles
    */
   getPlatformsInfo() {
     return {
@@ -315,10 +412,12 @@ class FreightExchangeService {
         {
           id: 'timocom',
           name: 'Timocom',
-          description: 'Bolsa de cargas líder en Europa',
+          description: 'Bolsa de cargas lider en Europa',
           coverage: ['DE', 'FR', 'ES', 'IT', 'PL', 'NL', 'BE', 'AT', 'CH', 'CZ', 'SK', 'HU'],
           website: 'https://www.timocom.com',
-          apiStatus: process.env.TIMOCOM_USER ? 'configured' : 'demo_mode'
+          apiStatus: process.env.TIMOCOM_USER ? 'configured' : 'demo_mode',
+          offersPerDay: '750,000+',
+          color: 'blue'
         },
         {
           id: 'wtransnet',
@@ -327,7 +426,39 @@ class FreightExchangeService {
           coverage: ['ES', 'PT', 'FR', 'IT', 'MA', 'AD'],
           website: 'https://www.wtransnet.com',
           apiStatus: process.env.WTRANSNET_USER ? 'credentials_ready' : 'demo_mode',
-          note: 'API privada - acceso vía web'
+          offersPerDay: '100,000+',
+          note: 'API privada - acceso via web',
+          color: 'orange'
+        },
+        {
+          id: 'teleroute',
+          name: 'Teleroute',
+          description: 'Alpega Group - Europa Occidental',
+          coverage: ['ES', 'FR', 'BE', 'NL', 'LU', 'DE', 'IT', 'PT', 'CH', 'AT', 'GB'],
+          website: 'https://www.teleroute.com',
+          apiStatus: process.env.TELEROUTE_API_KEY ? 'configured' : 'demo_mode',
+          offersPerDay: '350,000+',
+          color: 'green'
+        },
+        {
+          id: 'transeu',
+          name: 'Trans.eu',
+          description: 'Plataforma logistica lider en Europa Central y del Este',
+          coverage: ['PL', 'DE', 'CZ', 'SK', 'HU', 'RO', 'BG', 'LT', 'LV', 'EE', 'AT', 'ES', 'FR', 'IT', 'NL', 'BE', 'DK', 'SE'],
+          website: 'https://www.trans.eu',
+          apiStatus: (process.env.TRANSEU_API_KEY && process.env.TRANSEU_CLIENT_SECRET) ? 'configured' : 'demo_mode',
+          offersPerDay: '400,000+',
+          color: 'purple'
+        },
+        {
+          id: 'cargopedia',
+          name: 'Cargopedia',
+          description: 'Bolsa de cargas de Europa del Este y del Sur',
+          coverage: ['RO', 'BG', 'TR', 'GR', 'HU', 'PL', 'CZ', 'SK', 'RS', 'HR', 'SI', 'MD', 'UA'],
+          website: 'https://www.cargopedia.net',
+          apiStatus: process.env.CARGOPEDIA_API_KEY ? 'configured' : 'demo_mode',
+          offersPerDay: '150,000+',
+          color: 'red'
         }
       ]
     };

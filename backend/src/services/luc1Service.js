@@ -7,7 +7,7 @@
  * - Aplica expertise en productos forestales
  * - Detecta restricciones y factores de riesgo
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  * @version 2.0.0 - Integrado con Claude Sonnet 4 via HTTP
  */
 
@@ -232,7 +232,7 @@ class LUC1Service {
     const { route, cargo, service } = quoteRequest;
 
     return `
-Como experto en logística terrestre europea especializado en análisis de mercado de transporte, evalúa estas ofertas de transportistas para Stock Logistic.
+Como experto en logística terrestre europea especializado en análisis de mercado de transporte, evalúa estas ofertas de transportistas para AXEL.
 
 SOLICITUD DE TRANSPORTE:
 - Ruta: ${route.origin} → ${route.destination} (${routeData.distance || 'N/A'}km)
@@ -327,7 +327,7 @@ ANÁLISIS REQUERIDO POR LUC1:
    - ¿Alertas sobre transportistas que pueden no cumplir restricciones?
    - ¿Costos ocultos por restricciones que cliente debe conocer?
 
-CONTEXTO STOCK LOGISTIC:
+CONTEXTO AXEL:
 - Intermediario logístico con 29 años experiencia
 - Especializado en productos forestales
 - Parte del Grupo Alonso (infraestructura robusta)
@@ -454,10 +454,10 @@ FORMATO: Lista de alertas con nivel de criticidad.
       if (!this.connected) await this.connect();
 
       const enhancedQuestion = `
-Como experto en logística terrestre europea para Stock Logistic:
+Como experto en logística terrestre europea para AXEL:
 PREGUNTA: ${question}
 
-Responde de forma concisa y práctica, considerando que Stock Logistic es intermediario logístico especializado en productos forestales con 29 años de experiencia.
+Responde de forma concisa y práctica, considerando que AXEL es intermediario logístico especializado en productos forestales con 29 años de experiencia.
       `;
 
       const response = await this.client.post('/chat/message', {

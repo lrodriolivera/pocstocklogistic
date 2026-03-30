@@ -13,7 +13,7 @@
  * - European Holidays API: Festivos todos países UE
  * - Data.Europa.eu: Datasets transporte europeos
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  * @version 1.0.0
  */
 
@@ -130,7 +130,7 @@ class EuropeanRestrictionsService {
         timeout: 5000,
         headers: {
           'Accept': 'application/xml, text/xml',
-          'User-Agent': 'StockLogistic/1.0'
+          'User-Agent': 'Axel/1.0'
         }
       });
 
@@ -343,7 +343,7 @@ class EuropeanRestrictionsService {
         timeout: 10000,
         headers: {
           'Accept': 'application/xml, text/xml',
-          'User-Agent': 'StockLogistic/1.0'
+          'User-Agent': 'Axel/1.0'
         }
       });
 

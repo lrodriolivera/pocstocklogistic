@@ -1,6 +1,6 @@
 /**
  * 🛣️ TollGuru Service - Cálculo Preciso de Peajes Europeos
- * Stock Logistic POC - Integración TollGuru API
+ * AXEL - Integración TollGuru API
  *
  * FUNCIONALIDADES:
  * - Cálculo de peajes desde polylines OpenRoute
@@ -9,7 +9,7 @@
  * - Manejo robusto de errores con fallbacks
  * - Optimizado para vehículos comerciales europeos
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  * @version 1.0.0
  */
 

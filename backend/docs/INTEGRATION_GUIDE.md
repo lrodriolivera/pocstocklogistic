@@ -137,7 +137,7 @@ TRANSPORTIST_API_MODE=real
 ## 🔧 Arquitectura del Sistema
 
 ```
-Stock Logistic Backend
+AXEL Backend
     ↓
 MasterQuoteService
     ↓

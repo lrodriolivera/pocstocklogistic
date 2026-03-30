@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * 🚀 Demo Script - Sistema Completo LUC1 Stock Logistic
+ * 🚀 Demo Script - Sistema Completo LUC1 AXEL
  * 
  * Demostración del flujo completo:
  * 1. Consulta múltiples transportistas
@@ -31,7 +31,7 @@ const colors = {
 
 const log = (color, message) => console.log(`${colors[color]}${message}${colors.reset}`);
 
-class StockLogisticDemo {
+class AxelDemo {
   constructor() {
     this.luc1Service = new LUC1Service();
     this.transportistService = new MultiTransportistService();
@@ -258,7 +258,7 @@ class StockLogisticDemo {
       pricing: {
         recommendedTransportist: analysis.recommendedTransportist,
         basePrice: analysis.basePrice,
-        stockLogisticMargin: analysis.suggestedMargin,
+        axelMargin: analysis.suggestedMargin,
         finalPriceWithoutVAT: analysis.finalPrice,
         vat: Math.round(analysis.finalPrice * 0.21),
         totalWithVAT: Math.round(analysis.finalPrice * 1.21),
@@ -317,7 +317,7 @@ class StockLogisticDemo {
    * 📄 Imprimir cotización final
    */
   printFinalQuote(quote) {
-    log('bright', '\n📋 COTIZACIÓN FINAL STOCK LOGISTIC');
+    log('bright', '\n📋 COTIZACIÓN FINAL AXEL');
     console.log();
     
     log('cyan', `🆔 ID: ${quote.quoteId}`);
@@ -327,7 +327,7 @@ class StockLogisticDemo {
     console.log();
     log('yellow', '💰 PRECIOS:');
     log('green', `   Precio base: €${quote.pricing.basePrice.toLocaleString()}`);
-    log('green', `   Margen Stock Logistic: ${quote.pricing.stockLogisticMargin}%`);
+    log('green', `   Margen AXEL: ${quote.pricing.axelMargin}%`);
     log('green', `   Subtotal: €${quote.pricing.finalPriceWithoutVAT.toLocaleString()}`);
     log('green', `   IVA (21%): €${quote.pricing.vat.toLocaleString()}`);
     log('bright', `   TOTAL: €${quote.pricing.totalWithVAT.toLocaleString()}`);
@@ -388,7 +388,7 @@ class StockLogisticDemo {
   printHeader() {
     console.clear();
     log('bright', '╔═══════════════════════════════════════════════════════════════════════════════╗');
-    log('bright', '║                    🚀 STOCK LOGISTIC POC - DEMOSTRACIÓN                      ║');
+    log('bright', '║                    🚀 AXEL - DEMOSTRACIÓN                                     ║');
     log('bright', '║                                                                               ║');
     log('bright', '║              Sistema de Cotizaciones Inteligente con LUC1-COMEX             ║');
     log('bright', '╚═══════════════════════════════════════════════════════════════════════════════╝');
@@ -409,7 +409,7 @@ class StockLogisticDemo {
 // ===== EJECUCIÓN DEL SCRIPT =====
 
 async function main() {
-  const demo = new StockLogisticDemo();
+  const demo = new AxelDemo();
   
   try {
     await demo.runDemo();
@@ -424,4 +424,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = StockLogisticDemo;
+module.exports = AxelDemo;

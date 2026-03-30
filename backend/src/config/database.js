@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 class DatabaseService {
   constructor() {
     this.connection = null;
-    this.connectionString = process.env.MONGODB_URI || 'mongodb://localhost:27017/stock-logistic';
+    this.connectionString = process.env.MONGODB_URI || 'mongodb://localhost:27017/axel';
   }
 
   async connect() {

@@ -1,6 +1,6 @@
 /**
  * 🔧 Configuración centralizada de APIs
- * Stock Logistic POC
+ * AXEL
  */
 
 const apisConfig = {

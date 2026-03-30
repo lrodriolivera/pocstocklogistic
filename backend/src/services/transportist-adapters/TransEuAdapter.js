@@ -4,7 +4,7 @@
  * Integración con la API de Trans.eu (Central/Eastern European freight exchange)
  * Documentación: https://api.trans.eu/documentation
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  * @version 1.0.0
  */
 
@@ -146,7 +146,7 @@ class TransEuAdapter extends BaseTransportistAdapter {
   /**
    * 🗺️ Mapear tipo de carga
    */
-  mapLoadType(stockLogisticType) {
+  mapLoadType(axelType) {
     const mapping = {
       'forestales': 'TIMBER',
       'forest_products': 'TIMBER',
@@ -155,7 +155,7 @@ class TransEuAdapter extends BaseTransportistAdapter {
       'refrigerados': 'REFRIGERATED'
     };
 
-    return mapping[stockLogisticType] || 'GENERAL';
+    return mapping[axelType] || 'GENERAL';
   }
 
   /**

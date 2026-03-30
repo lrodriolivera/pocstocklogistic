@@ -1,4 +1,6 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -28,9 +30,8 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, curl, etc)
     if (!origin) return callback(null, true);
 
-    // Check if origin is in allowed list or matches Render pattern
+    // Check if origin is in allowed list
     if (allowedOrigins.includes(origin) ||
-        origin.endsWith('.onrender.com') ||
         origin.includes('localhost')) {
       return callback(null, true);
     }
@@ -44,11 +45,15 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/', limiter);
 
+// Multi-tenant middleware - injects tenantId from authenticated user
+const { injectTenantId } = require('./middleware/tenant');
+app.use(injectTenantId);
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
-    message: 'Stock Logistic POC Backend',
+    message: 'AXEL Backend',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
     environment: process.env.NODE_ENV || 'development',
@@ -56,16 +61,7 @@ app.get('/health', (req, res) => {
       status: DatabaseService.getConnectionStatus(),
       connected: DatabaseService.isConnected()
     },
-    apis: {
-      luc1: process.env.LUC1_ENDPOINT ? 'Configured' : 'Missing',
-      openroute: process.env.OPENROUTE_API_KEY ? 'Configured' : 'Missing',
-      google: process.env.GOOGLE_MAPS_API_KEY ? 'Configured' : 'Missing',
-      tollguru: process.env.TOLLGURU_API_KEY ? 'Configured' : 'Missing'
-    },
-    freightExchanges: {
-      timocom: process.env.TIMOCOM_USER ? 'Configured' : 'Demo Mode',
-      wtransnet: process.env.WTRANSNET_USER ? 'Configured' : 'Demo Mode'
-    }
+    apis: 'operational'
   });
 });
 
@@ -79,6 +75,8 @@ const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users');
 const chatRoutes = require('./routes/chat');
 const freightExchangeRoutes = require('./routes/freightExchange');
+const clientsRoutes = require('./routes/clients');
+const emailRoutes = require('./routes/email');
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -90,11 +88,13 @@ app.use('/api', mapsRoutes);
 app.use('/api/pdf', pdfRoutes);
 app.use('/api/load-calculator', loadCalculatorRoutes);
 app.use('/api/freight-exchange', freightExchangeRoutes);
+app.use('/api/clients', clientsRoutes);
+app.use('/api/email', emailRoutes);
 
 // API status endpoint
 app.get('/api/status', (req, res) => {
   res.json({
-    service: 'Stock Logistic API',
+    service: 'AXEL API',
     status: 'active',
     endpoints: {
       health: '/health',
@@ -126,17 +126,64 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
+// Create HTTP server wrapping Express app
+const server = http.createServer(app);
+
+// Initialize Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: function(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin) ||
+          origin.includes('localhost') ||
+          origin === 'https://axel.strixai.es') {
+        return callback(null, true);
+      }
+      callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true
+  }
+});
+
+// JWT authentication middleware for socket connections
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) return next(new Error('Authentication required'));
+  try {
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.userId;
+    next();
+  } catch (err) {
+    next(new Error('Invalid token'));
+  }
+});
+
+io.on('connection', (socket) => {
+  // Join user's personal room
+  socket.join(`user:${socket.userId}`);
+  console.log(`Socket connected: ${socket.userId}`);
+
+  socket.on('disconnect', () => {
+    console.log(`Socket disconnected: ${socket.userId}`);
+  });
+});
+
+// Make io available to routes/services
+app.set('io', io);
+
 // Initialize database connection and start server
 const startServer = async () => {
   try {
     // Connect to MongoDB
     await DatabaseService.connect();
 
-    // Start Express server
-    app.listen(PORT, () => {
-      console.log(`🚀 Stock Logistic POC Backend running on port ${PORT}`);
+    // Start HTTP server (with Socket.IO)
+    server.listen(PORT, () => {
+      console.log(`🚀 AXEL Backend running on port ${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`📦 Database: Connected to MongoDB`);
+      console.log(`🔌 WebSocket: Socket.IO ready`);
       console.log(`🏥 Health check: http://localhost:${PORT}/health`);
       console.log(`📡 API status: http://localhost:${PORT}/api/status`);
     });

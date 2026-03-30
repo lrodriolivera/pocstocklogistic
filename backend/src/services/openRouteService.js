@@ -1,5 +1,5 @@
 /**
- * 🗺️ OpenRouteService - Servicio de Mapas y Rutas para Stock Logistic POC
+ * 🗺️ OpenRouteService - Servicio de Mapas y Rutas para AXEL
  *
  * FUNCIONALIDADES:
  * - Geocoding de ciudades europeas
@@ -8,7 +8,7 @@
  * - Sistema de cache
  * - Fallbacks robustos
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  * @version 1.0.0
  */
 

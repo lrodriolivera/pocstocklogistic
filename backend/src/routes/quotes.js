@@ -27,8 +27,9 @@ router.post('/generate',
   (req, res) => quoteController.generateQuote(req, res)
 );
 
-// AI Agent route (no authentication required for internal service)
+// AI Agent route
 router.post('/ai-generate',
+  authenticateToken,
   (req, res) => quoteController.generateQuoteFromAI(req, res)
 );
 
@@ -74,6 +75,11 @@ router.get('/statistics/overview',
   authenticateToken,
   requireMinimumRole('supervisor'),
   (req, res) => quoteController.getQuoteStatistics(req, res)
+);
+
+router.get('/statistics/charts',
+  authenticateToken,
+  (req, res) => quoteController.getChartStatistics(req, res)
 );
 
 // Tracking System Routes

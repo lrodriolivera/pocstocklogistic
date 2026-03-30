@@ -4,7 +4,7 @@
  * Valida el funcionamiento completo del sistema:
  * LUC1Service + MultiTransportistService + RouteValidationService
  * 
- * @author Stock Logistic Team
+ * @author AXEL Team
  */
 
 const LUC1Service = require('../../services/luc1Service');

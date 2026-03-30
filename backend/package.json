@@ -1,5 +1,5 @@
 {
-  "name": "stock-logistic-backend",
+  "name": "axel-backend",
   "version": "1.0.0",
   "description": "Sistema de Cotizaciones Inteligente - Backend",
   "main": "src/app.js",
@@ -17,9 +17,10 @@
     "quotes",
     "transport"
   ],
-  "author": "Stock Logistic Team",
+  "author": "AXEL Team",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.1005.0",
     "@gradio/client": "^0.12.2",
     "@mapbox/polyline": "^1.2.1",
     "axios": "^1.5.0",
@@ -38,6 +39,7 @@
     "pdf-lib": "^1.17.1",
     "puppeteer": "^24.22.3",
     "redis": "^4.6.7",
+    "socket.io": "^4.8.3",
     "winston": "^3.10.0",
     "xml2js": "^0.6.2"
   },

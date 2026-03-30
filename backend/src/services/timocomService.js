@@ -8,7 +8,7 @@
  *
  * Documentación: https://developer.timocom.com/
  *
- * @author Stock Logistic Team
+ * @author AXEL Team
  * @version 1.0.0
  */
 
