@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🔍 Verificando configuración Stock Logistic POC..."
+echo "🔍 Verificando configuración AXEL..."
 
 # Verificar estructura
 echo "📁 Verificando estructura de directorios..."

@@ -60,3 +60,6 @@ htmlcov/
 
 # Package locks (keep package-lock.json for reproducible builds)
 # package-lock.json
+
+# Screenshots and media
+capturas/*.ogg

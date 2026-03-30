@@ -14,7 +14,7 @@ from quotation_generator import QuotationGenerator
 
 class LogisticsCommands:
     def __init__(self):
-        self.project_root = Path("/home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc")
+        self.project_root = Path("/home/rypcloud/Documentos/Logistic/POC/axel")
         self.integration = LogisticsIntegration()
         self.generator = QuotationGenerator()
 

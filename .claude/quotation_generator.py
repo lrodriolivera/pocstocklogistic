@@ -21,7 +21,7 @@ except ImportError:
 
 class QuotationGenerator:
     def __init__(self):
-        self.project_root = Path("/home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc")
+        self.project_root = Path("/home/rypcloud/Documentos/Logistic/POC/axel")
         self.logistics_service = EuropeanLogisticsService() if EuropeanLogisticsService else None
 
     def generate_professional_quotation(self, session_data):
@@ -217,7 +217,7 @@ class QuotationGenerator:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cotización {{ quote_id }} - Stock Logistic</title>
+    <title>Cotización {{ quote_id }} - AXEL</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
         .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
@@ -249,7 +249,7 @@ class QuotationGenerator:
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🚚 STOCK LOGISTIC</div>
+            <div class="logo">🚚 AXEL</div>
             <div class="subtitle">Transporte Terrestre Europeo Especializado</div>
             <div class="quote-id">{{ quote_id }}</div>
         </div>
@@ -348,8 +348,8 @@ class QuotationGenerator:
         </div>
 
         <div class="footer">
-            <p><strong>Stock Logistic S.L.</strong> - Especialistas en Transporte Terrestre Europeo</p>
-            <p>📧 info@stocklogistic.com | 📞 +34 XXX XXX XXX | 🌐 www.stocklogistic.com</p>
+            <p><strong>AXEL</strong> - Especialistas en Transporte Terrestre Europeo</p>
+            <p>📧 info@axel.es | 📞 +34 XXX XXX XXX | 🌐 www.axel.es</p>
             <p>Esta cotización ha sido generada automáticamente por nuestro sistema inteligente LUC1-COMEX</p>
         </div>
     </div>

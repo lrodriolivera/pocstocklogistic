@@ -166,7 +166,7 @@ NO vuelvas a preguntar por estos datos.
 
 ### Test Manual:
 ```bash
-cd /home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc
+cd /home/rypcloud/Documentos/Logistic/POC/axel
 ./test_context_fix.sh
 ```
 
@@ -206,7 +206,7 @@ Este script:
 ### 1. El archivo ya fue modificado
 ```bash
 # Ubicación del archivo corregido
-/home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc/ai-service/claude_handler.py
+/home/rypcloud/Documentos/Logistic/POC/axel/ai-service/claude_handler.py
 ```
 
 ### 2. Servidor reiniciado

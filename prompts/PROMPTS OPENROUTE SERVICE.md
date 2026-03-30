@@ -1,5 +1,5 @@
 # 🗺️ PROMPTS OPENROUTE SERVICE INTEGRATION
-## Stock Logistic POC - Sistema de Cotizaciones Inteligente
+## AXEL - Sistema de Cotizaciones Inteligente
 
 **API Key Configurada**: `eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjY3MDE5YWQ3ZTlkZTQxNmQ4YjNjODc0MjQ4ZTUwM2YxIiwiaCI6Im11cm11cjY0In0=`
 
@@ -12,7 +12,7 @@
 ## 🚀 PROMPT #3A: SERVICIO OPENROUTE CORE
 
 ```markdown
-Necesito implementar el servicio principal de OpenRoute Service para el sistema de cotizaciones Stock Logistic POC.
+Necesito implementar el servicio principal de OpenRoute Service para el sistema de cotizaciones AXEL.
 
 CONTEXTO DEL PROYECTO:
 - Sistema de cotizaciones inteligente para transporte terrestre
@@ -120,7 +120,7 @@ Por favor implementa el servicio completo con todas las funcionalidades, manejo 
 ## 🔧 PROMPT #3B: CONFIGURACIÓN VARIABLES DE ENTORNO
 
 ```markdown
-Necesito actualizar la configuración de variables de entorno para incluir OpenRoute Service en el proyecto Stock Logistic POC.
+Necesito actualizar la configuración de variables de entorno para incluir OpenRoute Service en el proyecto AXEL.
 
 CONTEXTO:
 - Proyecto ya tiene estructura backend/frontend configurada
@@ -213,7 +213,7 @@ Agregar en el health check endpoint información de OpenRoute:
 app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
-    message: 'Stock Logistic POC Backend',
+    message: 'AXEL Backend',
     apis: {
       luc1: process.env.LUC1_ENDPOINT ? 'Configured' : 'Missing',
       openroute: process.env.OPENROUTE_API_KEY ? 'Configured' : 'Missing',
@@ -232,7 +232,7 @@ Por favor actualiza todos los archivos de configuración con las variables de Op
 ## 📍 PROMPT #3C: INTEGRACIÓN CON CALCULATION ENGINE
 
 ```markdown
-Necesito integrar el servicio OpenRoute Service con el motor de cálculo principal del sistema Stock Logistic POC.
+Necesito integrar el servicio OpenRoute Service con el motor de cálculo principal del sistema AXEL.
 
 CONTEXTO:
 - OpenRouteService ya implementado en backend/src/services/openRouteService.js
@@ -734,13 +734,13 @@ Por favor implementa la integración frontend completa de OpenRoute Service con 
 ## ✅ PROMPT #3E: TESTING Y VALIDACIÓN FINAL
 
 ```markdown
-Necesito crear testing completo para la integración OpenRoute Service en el proyecto Stock Logistic POC.
+Necesito crear testing completo para la integración OpenRoute Service en el proyecto AXEL.
 
 CONTEXTO:
 - OpenRoute Service integrado en backend y frontend
 - API Key: eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjY3MDE5YWQ3ZTlkZTQxNmQ4YjNjODc0MjQ4ZTUwM2YxIiwiaCI6Im11cm11cjY0In0=
 - Límites: 2000 directions/día, 1000 geocoding/día
-- Casos específicos Stock Logistic a validar
+- Casos específicos AXEL a validar
 
 ARCHIVOS DE TESTING:
 
@@ -1028,7 +1028,7 @@ MÉTRICAS DE ÉXITO:
 - ✅ Performance < 5 segundos por ruta
 - ✅ Integración completa con CalculationEngine
 
-Por favor implementa toda la suite de testing para validar que OpenRoute Service funciona perfectamente en el proyecto Stock Logistic POC.
+Por favor implementa toda la suite de testing para validar que OpenRoute Service funciona perfectamente en el proyecto AXEL.
 ```
 
 ---
@@ -1050,4 +1050,4 @@ Por favor implementa toda la suite de testing para validar que OpenRoute Service
 - ✅ Integración completa backend/frontend
 - ✅ Testing exhaustivo implementado
 
-**¡Listo para implementar OpenRoute Service como API principal de mapas en Stock Logistic POC!** 🗺️
+**¡Listo para implementar OpenRoute Service como API principal de mapas en AXEL!** 🗺️

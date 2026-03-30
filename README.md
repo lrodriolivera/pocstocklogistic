@@ -1,10 +1,10 @@
-# 🚀 Stock Logistic POC - Sistema de Cotizaciones Inteligente
+# 🚀 AXEL - Sistema de Cotizaciones Inteligente
 
 **Powered by LUC1-COMEX AI** | Especializado en Transporte Terrestre Europa
 
 ## 📋 Resumen
 
-Esta POC demuestra cómo Stock Logistic puede transformar su proceso de cotizaciones manual en un sistema inteligente que reduce la dependencia de expertos, mejora la atención al cliente y optimiza precios automáticamente.
+Esta POC demuestra cómo AXEL puede transformar su proceso de cotizaciones manual en un sistema inteligente que reduce la dependencia de expertos, mejora la atención al cliente y optimiza precios automáticamente.
 
 ### 🎯 Objetivos
 - ✅ **75-80% de fiabilidad** en cotizaciones sin datos históricos
@@ -52,4 +52,4 @@ npm start
 Para soporte técnico o consultas sobre el proyecto, contacta al equipo de desarrollo.
 
 ---
-Copyright © 2025 Stock Logistic. Todos los derechos reservados.
+Copyright © 2025 AXEL. Todos los derechos reservados.

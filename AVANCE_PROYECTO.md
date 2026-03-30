@@ -1,11 +1,11 @@
-# Resumen de Avance - Stock Logistic POC
+# Resumen de Avance - AXEL
 
 **Fecha**: 20 de Octubre de 2025
 **Estado**: Sistema Operativo y Funcional
 
 ## Estado General del Proyecto
 
-El sistema Stock Logistic POC está completamente operativo con tres servicios principales funcionando correctamente:
+El sistema AXEL está completamente operativo con tres servicios principales funcionando correctamente:
 
 - **Backend** (Node.js/Express): Puerto 5000 ✅
 - **Frontend** (React): Puerto 3001 ✅
@@ -123,7 +123,7 @@ weight_tons = max(data.get('peso_kg', 1000) / 1000, 0.1)
 
 ### Backend (Node.js/Express)
 **Puerto**: 5000
-**Base de datos**: MongoDB (stock-logistic)
+**Base de datos**: MongoDB (axel)
 **Cache**: Redis
 
 **Servicios principales**:
@@ -361,7 +361,7 @@ Para verificar si una cotización se guardó:
 ```
 PORT=5000
 NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/stock-logistic
+MONGODB_URI=mongodb://localhost:27017/axel
 REDIS_URL=redis://localhost:6379
 
 AI_SERVICE_URL=http://localhost:8002
@@ -411,7 +411,7 @@ python luci_server.py
 
 ## Conclusiones
 
-El sistema Stock Logistic POC está completamente funcional con ambos métodos de generación de cotizaciones operativos:
+El sistema AXEL está completamente funcional con ambos métodos de generación de cotizaciones operativos:
 
 ✅ **Formulario Manual**: Totalmente funcional
 ✅ **Chat Conversacional con IA**: Totalmente funcional

@@ -72,7 +72,7 @@ El **Agent Logistics-Quotation** es un agente personalizado para Claude Code que
 
 ```bash
 # Desde el directorio del proyecto
-cd /home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc/
+cd /home/rypcloud/Documentos/Logistic/POC/axel/
 
 # Ejecutar instalador
 ./.claude/install-agent.sh
@@ -306,7 +306,7 @@ frontend/public/quotations/             # Cotizaciones para web
 
 ### 🎨 Documentos Profesionales
 - **HTML responsive**: Compatible con todos los dispositivos
-- **Branding corporativo**: Diseño profesional Stock Logistic
+- **Branding corporativo**: Diseño profesional AXEL
 - **Desglose detallado**: Costos transparentes y explicaciones
 - **Múltiples alternativas**: Económica, estándar, express
 
@@ -460,10 +460,10 @@ cat .claude/config.json | jq .
 
 ## 📄 Licencia y Copyright
 
-**Copyright © 2025 Stock Logistic S.L.**
+**Copyright © 2025 AXEL**
 **Agent Logistics-Quotation para Claude Code**
 
-Este agent es parte del sistema propietario de cotizaciones inteligentes de Stock Logistic. Desarrollado específicamente para optimizar el proceso de cotizaciones de transporte terrestre europeo.
+Este agent es parte del sistema propietario de cotizaciones inteligentes de AXEL. Desarrollado específicamente para optimizar el proceso de cotizaciones de transporte terrestre europeo.
 
 **Tecnologías utilizadas:**
 - Claude Code (Anthropic)

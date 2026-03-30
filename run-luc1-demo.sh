@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Ejecutando Demostración LUC1 Stock Logistic..."
+echo "🚀 Ejecutando Demostración LUC1 AXEL..."
 echo ""
 
 cd backend

@@ -1,4 +1,4 @@
-# Stock Logistic POC - Reporte de Avance
+# AXEL - Reporte de Avance
 
 **Fecha:** 29 Septiembre 2025
 **Sesión de trabajo:** Sistema de Cálculo de Metro Lineal y LTL/FTL

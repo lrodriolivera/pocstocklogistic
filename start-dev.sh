@@ -2,7 +2,7 @@
 
 # Script para iniciar el entorno de desarrollo completo
 
-echo "🚀 Iniciando Stock Logistic POC Development Environment..."
+echo "🚀 Iniciando AXEL Development Environment..."
 
 # Función para cleanup en exit
 cleanup() {

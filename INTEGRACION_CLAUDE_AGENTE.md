@@ -550,7 +550,7 @@ python3 ai-service/luci_server.py
 ```bash
 # Verificar MongoDB
 mongosh
-use stock_logistic
+use axel
 db.quotes.find().count()
 
 # Verificar variable MONGODB_URI en backend/.env

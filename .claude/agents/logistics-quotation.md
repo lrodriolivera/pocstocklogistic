@@ -70,7 +70,7 @@ Al completar todos los datos, automáticamente:
 ## 🎨 Presentación Profesional
 
 Genera documentos de cotización en formato profesional con:
-- **Header corporativo** Stock Logistic
+- **Header corporativo** AXEL
 - **Desglose detallado** de costos
 - **Mapa de ruta** visual
 - **Términos y condiciones**

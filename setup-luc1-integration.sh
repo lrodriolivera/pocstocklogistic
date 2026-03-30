@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 🤖 PROMPT #2: Integración LUC1-COMEX para Stock Logistic POC
+# 🤖 PROMPT #2: Integración LUC1-COMEX para AXEL
 # Implementación de servicios de IA y análisis inteligente
 # Duración: 6-8 horas automatizado en 15-20 minutos
 
@@ -38,11 +38,11 @@ check_project_structure() {
     log "🔍 Verificando estructura del proyecto..."
     
     if [ ! -d "backend/src" ] || [ ! -d "frontend/src" ]; then
-        error "Debes ejecutar este script desde el directorio raíz de stock-logistic-poc"
+        error "Debes ejecutar este script desde el directorio raíz de axel"
     fi
     
     if [ ! -f "backend/package.json" ]; then
-        error "Backend no configurado. Ejecuta primero setup-stock-logistic-poc.sh"
+        error "Backend no configurado. Ejecuta primero setup-axel.sh"
     fi
     
     log "✅ Estructura del proyecto verificada"
@@ -285,7 +285,7 @@ create_utility_scripts() {
     cat > run-luc1-demo.sh << 'EOF'
 #!/bin/bash
 
-echo "🚀 Ejecutando Demostración LUC1 Stock Logistic..."
+echo "🚀 Ejecutando Demostración LUC1 AXEL..."
 echo ""
 
 cd backend

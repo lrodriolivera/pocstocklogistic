@@ -1,5 +1,5 @@
 {
-  "name": "stock-logistic-poc",
+  "name": "axel",
   "version": "1.0.0",
   "description": "Sistema de Cotizaciones Inteligente - POC completa",
   "scripts": {
@@ -24,7 +24,7 @@
     "transport",
     "luc1-comex"
   ],
-  "author": "Stock Logistic Team",
+  "author": "AXEL Team",
   "license": "ISC",
   "engines": {
     "node": ">=16.0.0",

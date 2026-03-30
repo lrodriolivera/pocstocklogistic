@@ -27,7 +27,7 @@
 2. Selecciona **"M0 FREE"** (Shared)
 3. Proveedor: **AWS** (recomendado)
 4. Región: **eu-west-1 (Ireland)** o **eu-central-1 (Frankfurt)** - más cercano a España
-5. Nombre del Cluster: `stock-logistic` (o el que prefieras)
+5. Nombre del Cluster: `axel` (o el que prefieras)
 6. Clic en **"Create Cluster"** (tarda 1-3 minutos)
 
 ### 1.3 Configurar Acceso
@@ -36,7 +36,7 @@
 1. En el menú izquierdo: **"Database Access"**
 2. Clic **"Add New Database User"**
 3. Authentication: **Password**
-4. Username: `stocklogistic`
+4. Username: `axel`
 5. Password: Genera una segura (guárdala!)
 6. Role: **"Read and Write to any database"**
 7. Clic **"Add User"**
@@ -53,12 +53,12 @@
 2. Selecciona **"Drivers"**
 3. Copia el connection string, se ve así:
 ```
-mongodb+srv://stocklogistic:<password>@stock-logistic.xxxxx.mongodb.net/?retryWrites=true&w=majority
+mongodb+srv://axel:<password>@axel.xxxxx.mongodb.net/?retryWrites=true&w=majority
 ```
 4. Reemplaza `<password>` con tu contraseña real
 5. Agrega el nombre de la base de datos antes del `?`:
 ```
-mongodb+srv://stocklogistic:TU_PASSWORD@stock-logistic.xxxxx.mongodb.net/stock-logistic?retryWrites=true&w=majority
+mongodb+srv://axel:TU_PASSWORD@axel.xxxxx.mongodb.net/axel?retryWrites=true&w=majority
 ```
 
 ---
@@ -69,7 +69,7 @@ mongodb+srv://stocklogistic:TU_PASSWORD@stock-logistic.xxxxx.mongodb.net/stock-l
 
 ```bash
 # En la carpeta del proyecto
-cd /home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc
+cd /home/rypcloud/Documentos/Logistic/POC/axel
 
 # Inicializar Git (si no está)
 git init
@@ -109,10 +109,10 @@ EOF
 
 # Agregar archivos
 git add .
-git commit -m "Initial commit - Stock Logistic POC ready for Render"
+git commit -m "Initial commit - AXEL ready for Render"
 
 # Conectar a GitHub (crea el repo primero en github.com)
-git remote add origin https://github.com/TU_USUARIO/stock-logistic-poc.git
+git remote add origin https://github.com/TU_USUARIO/axel.git
 git branch -M main
 git push -u origin main
 ```
@@ -137,7 +137,7 @@ git push -u origin main
 1. Render Dashboard > **"New"** > **"Web Service"**
 2. Conecta tu repo de GitHub
 3. Configuración:
-   - **Name**: `stock-logistic-backend`
+   - **Name**: `axel-backend`
    - **Region**: Frankfurt (EU Central)
    - **Branch**: main
    - **Root Directory**: `backend`
@@ -152,7 +152,7 @@ git push -u origin main
 1. Render Dashboard > **"New"** > **"Web Service"**
 2. Conecta tu repo de GitHub
 3. Configuración:
-   - **Name**: `stock-logistic-ai`
+   - **Name**: `axel-ai`
    - **Region**: Frankfurt (EU Central)
    - **Branch**: main
    - **Root Directory**: `ai-service`
@@ -167,7 +167,7 @@ git push -u origin main
 1. Render Dashboard > **"New"** > **"Static Site"**
 2. Conecta tu repo de GitHub
 3. Configuración:
-   - **Name**: `stock-logistic-frontend`
+   - **Name**: `axel-frontend`
    - **Branch**: main
    - **Root Directory**: `frontend`
    - **Build Command**: `npm install && npm run build`
@@ -178,36 +178,36 @@ git push -u origin main
 
 ## Paso 4: Configurar Variables de Entorno
 
-### Backend (stock-logistic-backend)
+### Backend (axel-backend)
 
 En Render, ve al servicio > **"Environment"** > **"Add Environment Variable"**:
 
 | Variable | Valor |
 |----------|-------|
 | `NODE_ENV` | `production` |
-| `MONGODB_URI` | `mongodb+srv://luisrodriguez_db_user:P5ivs1fUI9QlJ1HL@cluster0.vjappik.mongodb.net/stock-logistic?retryWrites=true&w=majority&appName=Cluster0` |
-| `AI_SERVICE_URL` | `https://stock-logistic-ai.onrender.com` |
-| `FRONTEND_URL` | `https://stock-logistic-frontend.onrender.com` |
+| `MONGODB_URI` | `mongodb+srv://luisrodriguez_db_user:P5ivs1fUI9QlJ1HL@cluster0.vjappik.mongodb.net/axel?retryWrites=true&w=majority&appName=Cluster0` |
+| `AI_SERVICE_URL` | `https://axel-ai.onrender.com` |
+| `FRONTEND_URL` | `https://axel-frontend.onrender.com` |
 | `OPENROUTE_API_KEY` | (tu key de OpenRouteService) |
 | `TOLLGURU_API_KEY` | (tu key de TollGuru) |
 | `JWT_SECRET` | (genera uno aleatorio) |
 | `BCRYPT_ROUNDS` | `12` |
 
-### AI-Service (stock-logistic-ai)
+### AI-Service (axel-ai)
 
 | Variable | Valor |
 |----------|-------|
 | `PORT` | `10000` |
 | `HOST` | `0.0.0.0` |
 | `CLAUDE_API_KEY` | `sk-ant-api03-...` (tu key de Anthropic) |
-| `BACKEND_URL` | `https://stock-logistic-backend.onrender.com` |
-| `CORS_ORIGINS` | `https://stock-logistic-frontend.onrender.com,https://stock-logistic-backend.onrender.com` |
+| `BACKEND_URL` | `https://axel-backend.onrender.com` |
+| `CORS_ORIGINS` | `https://axel-frontend.onrender.com,https://axel-backend.onrender.com` |
 
-### Frontend (stock-logistic-frontend)
+### Frontend (axel-frontend)
 
 | Variable | Valor |
 |----------|-------|
-| `REACT_APP_API_URL` | `https://stock-logistic-backend.onrender.com` |
+| `REACT_APP_API_URL` | `https://axel-backend.onrender.com` |
 
 ---
 
@@ -219,13 +219,13 @@ Una vez desplegado, verifica que todo funcione:
 
 ```bash
 # Backend
-curl https://stock-logistic-backend.onrender.com/health
+curl https://axel-backend.onrender.com/health
 
 # AI Service
-curl https://stock-logistic-ai.onrender.com/health
+curl https://axel-ai.onrender.com/health
 
 # Frontend
-# Abre en navegador: https://stock-logistic-frontend.onrender.com
+# Abre en navegador: https://axel-frontend.onrender.com
 ```
 
 ### Logs
@@ -238,9 +238,9 @@ Para debug, ve a cada servicio en Render y revisa la pestaña **"Logs"**.
 
 Después del despliegue tendrás URLs como:
 
-- **Frontend**: https://stock-logistic-frontend.onrender.com
-- **Backend API**: https://stock-logistic-backend.onrender.com
-- **AI Service**: https://stock-logistic-ai.onrender.com
+- **Frontend**: https://axel-frontend.onrender.com
+- **Backend API**: https://axel-backend.onrender.com
+- **AI Service**: https://axel-ai.onrender.com
 
 > **Nota**: Los nombres exactos dependen de la disponibilidad. Render agregará sufijos si el nombre ya está en uso.
 
@@ -275,7 +275,7 @@ Después del despliegue tendrás URLs como:
 
 ```bash
 # Variables de entorno para desarrollo local apuntando a producción
-export REACT_APP_API_URL=https://stock-logistic-backend.onrender.com
+export REACT_APP_API_URL=https://axel-backend.onrender.com
 npm start
 ```
 

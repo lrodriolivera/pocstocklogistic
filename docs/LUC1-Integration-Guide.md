@@ -11,7 +11,7 @@ La integración del **modelo LUC1-COMEX** ha sido completada exitosamente siguie
 ```
 FLUJO CORRECTO:
 ┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
-│  APIs Transportistas│───▶│   LUC1-COMEX       │───▶│  Stock Logistic     │
+│  APIs Transportistas│───▶│   LUC1-COMEX       │───▶│  AXEL     │
 │  (Precios reales)   │    │   (Analiza/Selecciona) │    │  (Añade margen)     │
 └─────────────────────┘    └─────────────────────┘    └─────────────────────┘
          │                           │                           │
@@ -51,7 +51,7 @@ FLUJO CORRECTO:
 - **Orquestador** principal del sistema
 - **Combina** todos los servicios
 - **Genera** cotización final con alternativas
-- **Aplica** lógica de negocio Stock Logistic
+- **Aplica** lógica de negocio AXEL
 
 ---
 
@@ -91,7 +91,7 @@ HUGGING_FACE_TOKEN=hf_tu_token_aqui
 
 ### **🌲 Caso 1: Madrid-París Productos Forestales**
 - **Input**: 15t madera, carga completa
-- **Proceso**: LUC1 detecta especialización Stock Logistic
+- **Proceso**: LUC1 detecta especialización AXEL
 - **Output**: €4,089 con premium forestal aplicado
 - **Tiempo**: < 3 segundos
 
@@ -224,7 +224,7 @@ console.log(`Precio final: €${quote.costBreakdown.total}`);
 ### **Datos de Training**
 - LUC1 entrenado en **comercio exterior** general
 - Adaptación a **transporte terrestre** vía prompts
-- Mejorará con datos históricos Stock Logistic
+- Mejorará con datos históricos AXEL
 
 ---
 
@@ -285,7 +285,7 @@ node -e "const MasterQuoteService = require('./src/services/masterQuoteService')
 ## 📞 Soporte
 
 Para problemas técnicos o consultas:
-- 📧 **Email**: dev-team@stocklogistic.com
+- 📧 **Email**: dev-team@axel.es
 - 📱 **Slack**: #luc1-integration
 - 📖 **Logs**: `backend/logs/luc1.log`
 

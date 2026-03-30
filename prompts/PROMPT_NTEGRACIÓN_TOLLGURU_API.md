@@ -1,8 +1,8 @@
 # 🛣️ PROMPT CLAUDE CODE: INTEGRACIÓN TOLLGURU API
-## Sistema Stock Logistic POC - Cálculo Preciso de Peajes Europeos
+## Sistema AXEL - Cálculo Preciso de Peajes Europeos
 
 ```
-Necesito que implementes la integración completa de TollGuru API para cálculo preciso de peajes en el proyecto Stock Logistic POC.
+Necesito que implementes la integración completa de TollGuru API para cálculo preciso de peajes en el proyecto AXEL.
 
 CONTEXTO DEL PROYECTO:
 - Sistema de cotizaciones inteligente para transporte terrestre
@@ -195,7 +195,7 @@ Sistema que combine ruta OpenRoute + peajes exactos TollGuru + análisis LUC1 pa
 - ✅ **Pricing competitivo**: $80/mes vs $200+ competencia
 - ✅ **Sin vendor lock-in**: Mantiene flexibilidad de routing
 
-**Casos de Uso Stock Logistic:**
+**Casos de Uso AXEL:**
 - **Productos forestales**: Camiones especializados con dimensiones/peso específico
 - **Rutas europeas**: España-Francia-Italia-Alemania-Polonia principalmente  
 - **Precisión peajes**: Eliminar markup 20-30% por incertidumbre
@@ -237,4 +237,4 @@ QuoteForm → CalculationEngine → OpenRoute + TollGuru + LUC1 → QuoteResult
 4. **Optimizar performance** con cache y error handling
 5. **Documentar integration** para future maintenance
 
-**¿Listo para implementar la integración TollGuru y elevar la precisión de cotizaciones Stock Logistic al siguiente nivel?** 🛣️💰
+**¿Listo para implementar la integración TollGuru y elevar la precisión de cotizaciones AXEL al siguiente nivel?** 🛣️💰

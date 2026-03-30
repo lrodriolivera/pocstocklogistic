@@ -14,7 +14,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-PROJECT_ROOT="/home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc"
+PROJECT_ROOT="/home/rypcloud/Documentos/Logistic/POC/axel"
 CLAUDE_DIR="$PROJECT_ROOT/.claude"
 
 # Función para imprimir mensajes
@@ -121,7 +121,7 @@ cat > "$CLAUDE_DIR/start-logistics.sh" << 'EOF'
 #!/bin/bash
 # Script de inicio rápido para el agent logistics-quotation
 
-PROJECT_ROOT="/home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc"
+PROJECT_ROOT="/home/rypcloud/Documentos/Logistic/POC/axel"
 
 echo "🚚 INICIANDO SERVICIOS LOGISTICS-QUOTATION"
 echo "=========================================="

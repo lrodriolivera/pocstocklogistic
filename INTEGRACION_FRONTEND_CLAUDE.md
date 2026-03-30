@@ -373,7 +373,7 @@ Frontend: Muestra mensaje con:
 ```bash
 AI_SERVICE_URL=http://localhost:8002
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/stock-logistic
+MONGODB_URI=mongodb://localhost:27017/axel
 # ... otras variables
 ```
 
@@ -434,7 +434,7 @@ mongod --dbpath ~/data/db
 
 ### Terminal 2: Claude AI Server
 ```bash
-cd /home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc/ai-service
+cd /home/rypcloud/Documentos/Logistic/POC/axel/ai-service
 source venv/bin/activate
 python3 luci_server.py
 
@@ -446,7 +446,7 @@ python3 luci_server.py
 
 ### Terminal 3: Backend Node.js
 ```bash
-cd /home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc/backend
+cd /home/rypcloud/Documentos/Logistic/POC/axel/backend
 npm start
 
 # Deberías ver:
@@ -456,7 +456,7 @@ npm start
 
 ### Terminal 4: Frontend React
 ```bash
-cd /home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc/frontend
+cd /home/rypcloud/Documentos/Logistic/POC/axel/frontend
 npm start
 
 # Deberías ver:
@@ -477,7 +477,7 @@ npm start
 
 ### Test Automatizado
 ```bash
-cd /home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc
+cd /home/rypcloud/Documentos/Logistic/POC/axel
 ./test_full_integration.sh
 ```
 

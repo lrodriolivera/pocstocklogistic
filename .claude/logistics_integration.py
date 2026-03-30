@@ -12,7 +12,7 @@ import time
 
 class LogisticsIntegration:
     def __init__(self):
-        self.project_root = Path("/home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc")
+        self.project_root = Path("/home/rypcloud/Documentos/Logistic/POC/axel")
         self.state_file = self.project_root / ".claude" / "logistics_state.json"
         self.backend_url = "http://localhost:5000"
         self.frontend_url = "http://localhost:3000"

@@ -63,7 +63,7 @@ def check_service_running(url, name, timeout=3):
 def main():
     print_header("VERIFICACIÓN DEL AGENT LOGISTICS-QUOTATION")
 
-    project_root = Path("/home/rypcloud/Documentos/Logistic/POC/stock-logistic-poc")
+    project_root = Path("/home/rypcloud/Documentos/Logistic/POC/axel")
     claude_dir = project_root / ".claude"
 
     print_info(f"Directorio del proyecto: {project_root}")

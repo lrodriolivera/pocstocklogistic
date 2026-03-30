@@ -132,7 +132,7 @@ echo ""
 # 6. Check if quotation was created in MongoDB
 echo "6️⃣ Checking MongoDB for Generated Quotation"
 echo "------------------------------------------"
-mongosh stock-logistic --eval "
+mongosh axel --eval "
     db.quotes.find({createdBy: 'claude-ai-agent'})
     .sort({createdAt: -1})
     .limit(1)
