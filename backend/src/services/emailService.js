@@ -14,9 +14,9 @@ class EmailService {
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
       }
     });
-    this.fromEmail = process.env.SES_FROM_EMAIL || 'noreply@strixai.es';
+    this.fromEmail = process.env.SES_FROM_EMAIL || 'noreply@strixai.ai';
     this.appName = 'AXEL';
-    this.appUrl = process.env.FRONTEND_URL || 'https://axel.strixai.es';
+    this.appUrl = process.env.FRONTEND_URL || 'https://axel.strixai.ai';
   }
 
   /**

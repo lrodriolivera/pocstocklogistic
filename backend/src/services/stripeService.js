@@ -82,7 +82,7 @@ class StripeService {
       await tenant.save();
     }
 
-    const frontendUrl = process.env.FRONTEND_URL || 'https://axel.strixai.es';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://axel.strixai.ai';
 
     const session = await this.stripe.checkout.sessions.create({
       customer: customerId,
@@ -161,7 +161,7 @@ class StripeService {
       throw new Error('No Stripe customer found for this tenant');
     }
 
-    const frontendUrl = process.env.FRONTEND_URL || 'https://axel.strixai.es';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://axel.strixai.ai';
 
     const session = await this.stripe.billingPortal.sessions.create({
       customer: tenant.billing.stripeCustomerId,

@@ -220,14 +220,14 @@ async function seed() {
   // ─── Step 1: Look up existing users ─────────────────────────────────
   console.log('--- Paso 1: Buscando usuarios existentes ---');
   const luis = await User.findOne({ email: 'luis@axel.es' });
-  const jenifer = await User.findOne({ email: 'jenifer.romero@strixai.es' });
-  const rodrigo = await User.findOne({ email: 'rodrigo.godoy@strixai.es' });
+  const jenifer = await User.findOne({ email: 'jenifer.romero@strixai.ai' });
+  const rodrigo = await User.findOne({ email: 'rodrigo.godoy@strixai.ai' });
 
   if (!luis || !jenifer || !rodrigo) {
     const missing = [];
     if (!luis) missing.push('luis@axel.es');
-    if (!jenifer) missing.push('jenifer.romero@strixai.es');
-    if (!rodrigo) missing.push('rodrigo.godoy@strixai.es');
+    if (!jenifer) missing.push('jenifer.romero@strixai.ai');
+    if (!rodrigo) missing.push('rodrigo.godoy@strixai.ai');
     console.error(`ERROR: Usuarios base no encontrados: ${missing.join(', ')}`);
     console.error('Ejecuta primero seed-users.js para crear los usuarios base.');
     process.exit(1);

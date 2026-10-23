@@ -157,7 +157,7 @@ const io = new Server(server, {
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin) ||
           origin.includes('localhost') ||
-          origin === 'https://axel.strixai.es') {
+          origin === 'https://axel.strixai.ai') {
         return callback(null, true);
       }
       callback(new Error('Not allowed by CORS'));
