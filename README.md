@@ -1,5 +1,7 @@
 # 🚀 AXEL - Sistema de Cotizaciones Inteligente
 
+> **Estado: prioridad baja (nov 2026).** Proyecto en pausa; infraestructura EC2 detenida. Repo: `strixai/axel`.
+
 **Powered by LUC1-COMEX AI** | Especializado en Transporte Terrestre Europa
 
 ## 📋 Resumen
